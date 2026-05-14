@@ -11,18 +11,18 @@ export default function ModesScreen() {
 
       <TouchableOpacity
         style={[styles.button, styles.hireCraftsman]}
-        onPress={() => router.push('/hire')}
+        onPress={() => router.push('/chat-customer')}
       >
         <Text style={styles.buttonTitle}>Hire Craftsman</Text>
-        <Text style={styles.buttonDescription}>Find skilled professionals</Text>
+        <Text style={styles.buttonDescription}>Chat with AI to book a pro</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, styles.findWork]}
-        onPress={() => router.push('/find-work')}
+        onPress={() => router.push('/chat-provider')}
       >
         <Text style={styles.buttonTitle}>Find Work</Text>
-        <Text style={styles.buttonDescription}>Discover job opportunities</Text>
+        <Text style={styles.buttonDescription}>Chat with AI to find jobs</Text>
       </TouchableOpacity>
 
       <TouchableOpacity

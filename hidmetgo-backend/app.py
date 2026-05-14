@@ -5,13 +5,14 @@ Connects the mobile app to the Gemini AI agent
 
 import os
 import json
+from dotenv import load_dotenv
+
+# Load environment variables FIRST before importing anything that needs them
+load_dotenv()
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from dotenv import load_dotenv
-from app.hidmetgo_agent.agent import root_agent
-
-# Load environment variables
-load_dotenv()
+from app.hidmetgo_agent.agent import customer_agent, provider_agent
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -52,20 +53,25 @@ def process_request():
         user_message = data.get('message')
         user_id = data.get('user_id', 'anonymous')
         context = data.get('context', '')
+        mode = data.get('mode', 'customer') # 'customer' or 'provider'
         
         # Process through agent
         full_message = f"{context}\n{user_message}".strip()
         
-        # Call the Google Gemini agent
+        # Call the Groq agent
         try:
-            # The agent will process the message and return a response
-            agent_response = root_agent.generate_response(full_message)
+            if mode == 'provider':
+                agent_response = provider_agent.generate_response(full_message)
+                agent_name = provider_agent.name
+            else:
+                agent_response = customer_agent.generate_response(full_message)
+                agent_name = customer_agent.name
             
             response = {
                 'user_id': user_id,
                 'request': user_message,
                 'response': agent_response,
-                'agent_name': root_agent.name,
+                'agent_name': agent_name,
                 'status': 'success'
             }
         except Exception as agent_error:
