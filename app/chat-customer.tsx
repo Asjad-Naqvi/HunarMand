@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   userBubble: { alignSelf: 'flex-end', backgroundColor: '#1D9E75', borderBottomRightRadius: 4 },
   agentBubble: { alignSelf: 'flex-start', backgroundColor: '#1e293b', borderBottomLeftRadius: 4 },
   messageText: { color: '#f8fafc', fontSize: 15, lineHeight: 22 },
-  inputContainer: { flexDirection: 'row', padding: 12, backgroundColor: '#1e293b', alignItems: 'center' },
+  inputContainer: { flexDirection: 'row', padding: 16, paddingBottom: Platform.OS === 'ios' ? 40 : 50, backgroundColor: '#1e293b', alignItems: 'center' },
   input: { flex: 1, backgroundColor: '#0f172a', color: '#fff', borderRadius: 24, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, marginRight: 12 },
   sendButton: { backgroundColor: '#1D9E75', borderRadius: 24, paddingVertical: 12, paddingHorizontal: 20 },
   sendButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 }
