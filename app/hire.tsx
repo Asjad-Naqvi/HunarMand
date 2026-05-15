@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const CRAFTSMEN_CATEGORIES = [
   { id: '1', name: 'Plumbing', icon: '🔧' },
@@ -14,6 +15,36 @@ const CRAFTSMEN_CATEGORIES = [
 export default function HireScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<string>('Checking Supabase Connection...');
+  const [providers, setProviders] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log("Checking Supabase connection and fetching data...");
+      
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Supabase Error:", sessionError.message);
+        setConnectionStatus(`❌ Error: ${sessionError.message}`);
+      } else {
+        setConnectionStatus("✅ Supabase is fully connected!");
+        
+        // Fetch the seeded providers
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('provider_profiles')
+          .select('*, users(name)');
+          
+        if (profilesError) {
+           console.error("Error fetching profiles:", profilesError);
+        } else if (profilesData) {
+           setProviders(profilesData);
+        }
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -29,6 +60,10 @@ export default function HireScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Hire Craftsman</Text>
         <View style={{ width: 60 }} />
+      </View>
+
+      <View style={{ padding: 12, backgroundColor: connectionStatus.includes('✅') ? '#0f5132' : (connectionStatus.includes('Checking') ? '#334155' : '#842029'), marginHorizontal: 20, marginTop: 10, borderRadius: 8 }}>
+         <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>{connectionStatus}</Text>
       </View>
 
       <ScrollView
@@ -57,6 +92,20 @@ export default function HireScreen() {
           <TouchableOpacity style={styles.continueButton}>
             <Text style={styles.continueButtonText}>Continue</Text>
           </TouchableOpacity>
+        )}
+
+        {providers.length > 0 && (
+          <View style={{ marginTop: 20 }}>
+             <Text style={styles.sectionTitle}>Seeded Providers ({providers.length})</Text>
+             {providers.map((p, idx) => (
+               <View key={idx} style={{ backgroundColor: '#1e293b', padding: 15, borderRadius: 10, marginBottom: 10 }}>
+                 <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{p.users?.name || 'Unknown Provider'}</Text>
+                 <Text style={{ color: '#94a3b8', fontSize: 14 }}>{p.city} - {p.area}</Text>
+                 <Text style={{ color: '#1D9E75', marginTop: 5, fontWeight: 'bold' }}>⭐ {p.rating} ({p.total_reviews} reviews)</Text>
+                 <Text style={{ color: '#cbd5e1', marginTop: 5, fontStyle: 'italic' }}>"{p.bio}"</Text>
+               </View>
+             ))}
+          </View>
         )}
       </ScrollView>
     </View>

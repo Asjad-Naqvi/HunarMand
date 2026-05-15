@@ -5,3 +5,4 @@ groq>=0.18.0
 google-generativeai>=0.3.0
 gunicorn>=21.0.0
 requests>=2.31.0
+supabase>=2.3.0
