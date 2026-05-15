@@ -6,7 +6,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-<Text style={styles.title}>Welcome to OddJobs</Text>
+      <Text style={styles.title}>Welcome to OddJobs</Text>
       <Text style={styles.subtitle}>Apni service tarakhi karein</Text>
 
       <TouchableOpacity
