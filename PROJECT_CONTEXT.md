@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**OddJobs** is an AI-powered mobile platform that connects service providers (craftsmen) with customers. It's built as an MVP (Minimum Viable Product) using:
+**Haazir** is an AI-powered mobile platform that connects service providers (craftsmen) with customers. It's built as an MVP (Minimum Viable Product) using:
 
 - **Frontend**: React Native + Expo Router (TypeScript)
 - **Backend**: Python Flask API with Google Gemini AI Agent
