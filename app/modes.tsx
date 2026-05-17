@@ -11,7 +11,7 @@ export default function ModesScreen() {
 
       <TouchableOpacity
         style={[styles.button, styles.hireCraftsman]}
-        onPress={() => router.push('/chat-customer')}
+        onPress={() => router.push('/home-search')}
       >
         <Text style={styles.buttonTitle}>Hire Craftsman</Text>
         <Text style={styles.buttonDescription}>Chat with AI to book a pro</Text>

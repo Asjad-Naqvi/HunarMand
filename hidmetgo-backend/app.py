@@ -63,15 +63,18 @@ def process_request():
             if mode == 'provider':
                 agent_response = provider_agent.generate_response(full_message)
                 agent_name = provider_agent.name
+                history = provider_agent.chat_history
             else:
                 agent_response = customer_agent.generate_response(full_message)
                 agent_name = customer_agent.name
+                history = customer_agent.chat_history
             
             response = {
                 'user_id': user_id,
                 'request': user_message,
                 'response': agent_response,
                 'agent_name': agent_name,
+                'history': history,
                 'status': 'success'
             }
         except Exception as agent_error:
