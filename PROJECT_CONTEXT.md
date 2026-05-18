@@ -243,7 +243,19 @@ SERVER_HOST=0.0.0.0
   "expo-linking": "~8.0.0",
   "react": "19.1.0",
   "react-native": "0.81.5",
-  "react-native-web": "~0.20.0",
+  "react-native-web": "^0.21.0",
+  "react-native-worklets": "^0.8.3",
+  "react-native-reanimated": "^4.1.1",
+  "react-native-safe-area-context": "~5.6.0",
+  "react-native-screens": "~4.16.0",
+  "react-native-gesture-handler": "~2.28.0",
+  "expo-linear-gradient": "~15.0.8",
+  "expo-font": "~14.0.11",
+  "expo-splash-screen": "~31.0.13",
+  "expo-status-bar": "~3.0.9",
+  "@expo-google-fonts/inter": "^0.4.2",
+  "@expo/vector-icons": "^15.1.1",
+  "@supabase/supabase-js": "^2.105.4",
   "typescript": "~5.9.2"
 }
 ```
@@ -251,12 +263,14 @@ SERVER_HOST=0.0.0.0
 ### Backend (pip)
 
 ```
-flask>=2.3.0
-flask-cors>=4.0.0
-python-dotenv>=1.0.0
-google-cloud-agents>=0.1.0
-google-generativeai>=0.3.0
-gunicorn>=21.0.0
+Flask==3.1.3
+flask-cors==6.0.2
+python-dotenv==1.2.2
+groq==1.2.0
+google-generativeai==0.8.6
+requests==2.34.2
+supabase>=2.3.0
+gunicorn==26.0.0
 ```
 
 ---
