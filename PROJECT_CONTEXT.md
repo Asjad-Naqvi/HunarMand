@@ -244,7 +244,8 @@ SERVER_HOST=0.0.0.0
   "react": "19.1.0",
   "react-native": "0.81.5",
   "react-native-web": "^0.21.0",
-  "react-native-reanimated": "~3.16.1",
+  "react-native-reanimated": "4.1.1",
+  "react-native-worklets": "0.5.1",
   "react-native-safe-area-context": "~5.6.0",
   "react-native-screens": "~4.16.0",
   "react-native-gesture-handler": "~2.28.0",
@@ -255,6 +256,7 @@ SERVER_HOST=0.0.0.0
   "@expo-google-fonts/inter": "^0.4.2",
   "@expo/vector-icons": "^15.1.1",
   "@supabase/supabase-js": "^2.105.4",
+  "babel-preset-expo": "~54.0.10",
   "typescript": "~5.9.2"
 }
 ```
