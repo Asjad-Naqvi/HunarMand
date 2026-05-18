@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "OddJobs",
-    "slug": "oddjobs",
+    "name": "Haazir",
+    "slug": "haazir",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.haazir.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -27,6 +28,11 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0674d1b3-3c0a-4b40-bc0d-7d35425982e5"
+      }
+    }
   }
 }

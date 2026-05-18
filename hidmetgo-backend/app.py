@@ -61,11 +61,11 @@ def process_request():
         # Call the Groq agent
         try:
             if mode == 'provider':
-                agent_response = provider_agent.generate_response(full_message)
+                agent_response = provider_agent.generate_response(full_message, user_id=user_id)
                 agent_name = provider_agent.name
                 history = provider_agent.chat_history
             else:
-                agent_response = customer_agent.generate_response(full_message)
+                agent_response = customer_agent.generate_response(full_message, user_id=user_id)
                 agent_name = customer_agent.name
                 history = customer_agent.chat_history
             
@@ -88,6 +88,24 @@ def process_request():
         
         return jsonify(response), 200
         
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 500
+
+
+# Clear agent history endpoint (starts a fresh session)
+@app.route('/api/agent/clear', methods=['POST'])
+def clear_agent_history():
+    """Clears the chat history of both agents to start a new chat session"""
+    try:
+        customer_agent.clear_history()
+        provider_agent.clear_history()
+        return jsonify({
+            'status': 'success',
+            'message': 'Agent chat histories cleared successfully'
+        }), 200
     except Exception as e:
         return jsonify({
             'error': str(e),

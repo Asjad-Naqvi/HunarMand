@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,54 +8,165 @@ import { HzServiceCard } from "./HzServiceCard";
 import { HzBottomNav } from "../shared/HzBottomNav";
 import { Colors } from "../../constants/theme";
 
-const CATEGORIES = ["All", "AC Repair", "Plumber", "Electrician", "Cleaning", "Painter", "Carpenter"];
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-const PROVIDERS = [
-  { id: "1", name: "Ali Hassan", initials: "AH", serviceType: "AC Repair & Service", rating: 4.8, reviewCount: 127, location: "G-10", price: "PKR 2,500", availability: "available" as const },
-  { id: "2", name: "Usman Butt", initials: "UB", serviceType: "Plumber", rating: 4.6, reviewCount: 89, location: "F-7", price: "PKR 1,800", availability: "available" as const },
-  { id: "3", name: "Rizwan Ahmed", initials: "RA", serviceType: "Electrician", rating: 4.9, reviewCount: 203, location: "I-8", price: "PKR 2,000", availability: "available" as const },
-  { id: "4", name: "Babar Khan", initials: "BK", serviceType: "Sofa Cleaning", rating: 4.5, reviewCount: 64, location: "E-11", price: "PKR 3,500", availability: "scheduled" as const },
-  { id: "5", name: "Tariq Mehmood", initials: "TM", serviceType: "Painter", rating: 4.7, reviewCount: 41, location: "D-12", price: "PKR 4,200", availability: "available" as const },
-];
+const CATEGORIES = ["All", "AC Repair", "Plumber", "Electrician", "Cleaning", "Carpenter"];
+
+// Map service codes -> display names
+const SERVICE_CODE_MAP: Record<string, string> = {
+  "HS-04": "AC Repair & Service",
+  "HS-03": "Electrician",
+  "HS-01": "Plumber",
+  "HS-02": "Carpenter Work",
+  "CS-01": "Carpet Cleaning",
+  "CS-02": "Sofa Cleaning",
+};
+
+// Map service codes -> category filter terms
+const SERVICE_CATEGORY_MAP: Record<string, string[]> = {
+  "HS-04": ["AC Repair"],
+  "HS-03": ["Electrician"],
+  "HS-01": ["Plumber"],
+  "HS-02": ["Carpenter"],
+  "CS-01": ["Cleaning"],
+  "CS-02": ["Cleaning"],
+};
+
+interface ProviderRow {
+  id: string;
+  name: string;
+  serviceType: string;
+  serviceCode: string;
+  rating: number;
+  reviewCount: number;
+  location: string;
+  price: string;
+  availability: "available" | "busy" | "scheduled";
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map(w => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function formatPrice(rate: number): string {
+  return `PKR ${rate.toLocaleString("en-PK")}`;
+}
+
+async function fetchProviders(): Promise<ProviderRow[]> {
+  const url = `${SUPABASE_URL}/rest/v1/users?role=eq.provider&select=*,provider_profiles(*),provider_services(*),provider_sectors(*)`;
+
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_KEY!,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+    },
+  });
+
+  if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+  const data = await res.json();
+
+  const rows: ProviderRow[] = [];
+
+  for (const u of data) {
+    const profiles = u.provider_profiles;
+    const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+    if (!profile || profile.account_status !== "active") continue;
+
+    const services: any[] = u.provider_services || [];
+    const sectors: any[] = u.provider_sectors || [];
+
+    if (services.length === 0 || sectors.length === 0) continue;
+
+    // Take the first (primary) service for display
+    const primaryService = services.find((s: any) => s.is_primary) || services[0];
+    const sector = sectors[0]?.sector_code ?? "Islamabad";
+
+    rows.push({
+      id: u.id,
+      name: u.name ?? "Unknown",
+      serviceType: SERVICE_CODE_MAP[primaryService.service_code] ?? primaryService.service_code,
+      serviceCode: primaryService.service_code,
+      rating: parseFloat(profile.base_rating ?? 5),
+      reviewCount: parseInt(profile.jobs_completed ?? 0),
+      location: sector,
+      price: formatPrice(primaryService.per_job_rate_pkr ?? 0),
+      availability: profile.availability_status === "available" ? "available" : "busy",
+    });
+  }
+
+  return rows;
+}
 
 export const HzHomeScreen: React.FC = () => {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchValue, setSearchValue] = useState("");
+  const [providers, setProviders] = useState<ProviderRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredProviders = PROVIDERS.filter((p) => {
-    const matchesCategory = activeCategory === "All" || p.serviceType.toLowerCase().includes(activeCategory.toLowerCase());
-    const matchesSearch = !searchValue || p.name.toLowerCase().includes(searchValue.toLowerCase()) || p.serviceType.toLowerCase().includes(searchValue.toLowerCase()) || p.location.toLowerCase().includes(searchValue.toLowerCase());
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchProviders();
+      setProviders(data);
+    } catch (e: any) {
+      setError(e.message ?? "Failed to load providers");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filteredProviders = providers.filter(p => {
+    const categoryTerms = SERVICE_CATEGORY_MAP[p.serviceCode] ?? [];
+    const matchesCategory =
+      activeCategory === "All" ||
+      categoryTerms.some(t => t.toLowerCase() === activeCategory.toLowerCase()) ||
+      p.serviceType.toLowerCase().includes(activeCategory.toLowerCase());
+
+    const matchesSearch =
+      !searchValue ||
+      p.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+      p.serviceType.toLowerCase().includes(searchValue.toLowerCase()) ||
+      p.location.toLowerCase().includes(searchValue.toLowerCase());
+
     return matchesCategory && matchesSearch;
   });
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar style="dark" backgroundColor={Colors.white} />
-      
-      {/* Header Area */}
+
+      {/* Header */}
       <View style={styles.header}>
-        {/* Location & Bell Row */}
         <View style={styles.topRow}>
           <TouchableOpacity style={styles.locationBtn}>
             <Ionicons name="location" size={16} color={Colors.accent} />
             <View style={styles.locationTextCol}>
               <Text style={styles.locationSub}>Your location</Text>
               <View style={styles.locationValueRow}>
-                <Text style={styles.locationValue}>G-13, Islamabad</Text>
+                <Text style={styles.locationValue}>Islamabad</Text>
+                <Ionicons name="chevron-down" size={14} color={Colors.muted} />
               </View>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.bellBtn} onPress={() => router.push("/(consumer)/notifications" as any)}>
+          <TouchableOpacity style={styles.bellBtn}>
             <Ionicons name="notifications-outline" size={20} color={Colors.primary} />
           </TouchableOpacity>
         </View>
 
-        {/* Greeting */}
-        <Text style={styles.greetingTitle}>Good morning, Ali 👋</Text>
+        <Text style={styles.greetingTitle}>Good morning 👋</Text>
         <Text style={styles.greetingSub}>What service do you need today?</Text>
 
-        {/* Search Bar */}
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color={Colors.muted} style={styles.searchIcon} />
           <TextInput
@@ -69,7 +180,7 @@ export const HzHomeScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Category Chips Scroll */}
+      {/* Category Chips */}
       <View style={styles.chipStrip}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
           {CATEGORIES.map(cat => (
@@ -78,7 +189,9 @@ export const HzHomeScreen: React.FC = () => {
               onPress={() => setActiveCategory(cat)}
               style={[styles.chip, activeCategory === cat ? styles.chipActive : styles.chipInactive]}
             >
-              <Text style={[styles.chipText, activeCategory === cat ? styles.chipTextActive : styles.chipTextInactive]}>{cat}</Text>
+              <Text style={[styles.chipText, activeCategory === cat ? styles.chipTextActive : styles.chipTextInactive]}>
+                {cat}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -88,11 +201,29 @@ export const HzHomeScreen: React.FC = () => {
       <ScrollView style={styles.mainScroll} contentContainerStyle={styles.mainContent}>
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Popular Near You</Text>
-          {filteredProviders.length > 0 && <Text style={styles.sectionCount}>{filteredProviders.length} providers</Text>}
+          {!loading && filteredProviders.length > 0 && (
+            <Text style={styles.sectionCount}>{filteredProviders.length} providers</Text>
+          )}
+          <TouchableOpacity onPress={load} style={{ marginLeft: "auto" }}>
+            <Ionicons name="refresh" size={16} color={Colors.muted} />
+          </TouchableOpacity>
         </View>
 
-        {filteredProviders.length === 0 ? (
-          <View style={styles.emptyState}>
+        {loading ? (
+          <View style={styles.centerState}>
+            <ActivityIndicator size="large" color={Colors.accent} />
+            <Text style={styles.loadingText}>Loading providers...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.centerState}>
+            <Ionicons name="cloud-offline-outline" size={32} color={Colors.border} />
+            <Text style={styles.emptyText}>{error}</Text>
+            <TouchableOpacity onPress={load} style={styles.retryBtn}>
+              <Text style={styles.retryText}>Tap to retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : filteredProviders.length === 0 ? (
+          <View style={styles.centerState}>
             <Ionicons name="search" size={32} color={Colors.border} />
             <Text style={styles.emptyText}>No providers found. Try a different search or category.</Text>
           </View>
@@ -102,7 +233,7 @@ export const HzHomeScreen: React.FC = () => {
               <HzServiceCard
                 key={p.id}
                 name={p.name}
-                initials={p.initials}
+                initials={getInitials(p.name)}
                 serviceType={p.serviceType}
                 rating={p.rating}
                 reviewCount={p.reviewCount}
@@ -136,7 +267,7 @@ const styles = StyleSheet.create({
   searchBar: { height: 48, flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12 },
   searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, height: "100%", fontSize: 15, color: Colors.primary },
-  
+
   chipStrip: { paddingVertical: 12 },
   chipScroll: { paddingHorizontal: 16, gap: 8 },
   chip: { height: 32, paddingHorizontal: 16, borderRadius: 16, justifyContent: "center", alignItems: "center" },
@@ -152,8 +283,11 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 15, fontWeight: "600", color: Colors.primary },
   sectionCount: { marginLeft: 8, fontSize: 11, color: Colors.muted },
 
-  emptyState: { paddingVertical: 48, alignItems: "center", gap: 8 },
+  centerState: { paddingVertical: 48, alignItems: "center", gap: 8 },
   emptyText: { fontSize: 14, color: Colors.muted, textAlign: "center" },
-  
+  loadingText: { fontSize: 14, color: Colors.muted, marginTop: 8 },
+  retryBtn: { marginTop: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: Colors.accent },
+  retryText: { fontSize: 13, fontWeight: "600", color: Colors.white },
+
   list: { gap: 0 },
 });

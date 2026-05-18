@@ -8,29 +8,39 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Animated, { useAnimatedStyle, withTiming, useSharedValue } from "react-native-reanimated";
 import { HzBottomNav } from "../../haazir/shared/HzBottomNav";
 import { Colors, Radius, Shadows } from "../../constants/theme";
+import { useAuth } from "../../../lib/AuthContext";
+
+interface ChatMessage {
+  id: string;
+  sender: "agent" | "user";
+  text: string;
+  time: string;
+  reasoning?: string;
+}
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || "http://127.0.0.1:5000";
 
 /* ─── Thinking block ─── */
-const ThinkingBlock: React.FC = () => {
+const ThinkingBlock: React.FC<{ reasoning: string }> = ({ reasoning }) => {
   const [expanded, setExpanded] = useState(false);
   const heightValue = useSharedValue(54); // Closed height approx
 
   useEffect(() => {
-    heightValue.value = withTiming(expanded ? 120 : 54, { duration: 300 });
+    heightValue.value = withTiming(expanded ? 200 : 54, { duration: 300 });
   }, [expanded]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     height: heightValue.value,
   }));
-
-  const fullText = "Parsing consumer input... Detected: AC not working → HS-04 (AC Repairing). Severity signals: 'bilkul kaam nahi kar raha' → +1 complexity tier → Intermediate → Complex. Requested slot: tomorrow morning. Location: G-13...";
 
   return (
     <Animated.View style={[styles.thinkingBlock, animatedStyle]}>
@@ -44,12 +54,14 @@ const ThinkingBlock: React.FC = () => {
         <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={16} color={Colors.muted} />
       </TouchableOpacity>
       
-      <Text
-        numberOfLines={expanded ? undefined : 2}
-        style={styles.thinkingText}
-      >
-        {fullText}
-      </Text>
+      <ScrollView nestedScrollEnabled style={{ flex: 1, marginTop: 8 }}>
+        <Text
+          numberOfLines={expanded ? undefined : 2}
+          style={styles.thinkingText}
+        >
+          {reasoning}
+        </Text>
+      </ScrollView>
       
       {!expanded && (
         <TouchableOpacity onPress={() => setExpanded(true)} style={{ marginTop: 4 }}>
@@ -60,41 +72,16 @@ const ThinkingBlock: React.FC = () => {
   );
 };
 
-/* ─── Clarification card ─── */
-const ClarificationCard: React.FC = () => {
-  const [selected, setSelected] = useState<"residential" | "commercial">("residential");
-
-  return (
-    <View style={[styles.clarificationCard, Shadows.card]}>
-      <Text style={styles.clarificationTitle}>Is this for residential or commercial use?</Text>
-      <View style={{ marginTop: 12, gap: 8 }}>
-        {[
-          { id: "residential" as const, label: "Ghar (Residential)" },
-          { id: "commercial" as const,  label: "Office / Commercial" },
-        ].map(({ id, label }) => {
-          const isSelected = selected === id;
-          return (
-            <TouchableOpacity
-              key={id}
-              onPress={() => setSelected(id)}
-              activeOpacity={0.8}
-              style={[styles.clarificationOption, isSelected && styles.clarificationOptionSelected]}
-            >
-              <Text style={[styles.clarificationLabel, isSelected && styles.clarificationLabelSelected]}>
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-};
-
 /* ─── Agent bubble ─── */
-const AgentBubble: React.FC<{ text: string; time?: string }> = ({ text, time }) => (
+const AgentBubble: React.FC<{ text: string; time?: string; reasoning?: string; thinkingOn: boolean }> = ({
+  text,
+  time,
+  reasoning,
+  thinkingOn,
+}) => (
   <View style={styles.agentBubbleWrapper}>
-    <View style={styles.agentBubble}>
+    {thinkingOn && reasoning ? <ThinkingBlock reasoning={reasoning} /> : null}
+    <View style={[styles.agentBubble, Shadows.card]}>
       <Text style={styles.agentText}>{text}</Text>
       {time && <Text style={styles.agentTime}>{time}</Text>}
     </View>
@@ -111,57 +98,165 @@ const ConsumerBubble: React.FC<{ text: string; time?: string }> = ({ text, time 
   </View>
 );
 
-/* ─── Re-initiate search card ─── */
-const ReinitiateCard: React.FC = () => {
-  const router = useRouter();
-  
-  return (
-    <View style={[styles.reinitiateCard, Shadows.card]}>
-      <View style={{ alignSelf: "flex-start" }}>
-        <Text style={styles.reinitiateBadge}>Provider Declined</Text>
-      </View>
-      <Text style={styles.reinitiateTitle}>Looking for another provider?</Text>
-      
-      <View style={{ marginTop: 12 }}>
-        {[
-          { label: "Service",    value: "AC Repairing"         },
-          { label: "Location",   value: "G-13, Islamabad"       },
-          { label: "Date & Time", value: "Sat 18 May · 9:00 AM" },
-        ].map(({ label, value }, i, arr) => (
-          <View key={label} style={[styles.reinitiateRow, i === arr.length - 1 && { borderBottomWidth: 0 }]}>
-            <Text style={styles.reinitiateRowLabel}>{label}</Text>
-            <Text style={styles.reinitiateRowValue}>{value}</Text>
-          </View>
-        ))}
-      </View>
-      
-      <Text style={styles.reinitiateHint}>Usman Butt declined this request. He has been excluded from this search.</Text>
-      
-      <TouchableOpacity
-        onPress={() => router.push("/search-results")}
-        activeOpacity={0.8}
-        style={styles.reinitiateBtn}
-      >
-        <Text style={styles.reinitiateBtnText}>Find Another Provider</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity activeOpacity={0.7} style={styles.reinitiateCancel}>
-        <Text style={styles.reinitiateCancelText}>Cancel and start a new search</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
 /* ─── Main screen ─── */
-const MIN_INPUT_HEIGHT = 40;   // 1 line
-const MAX_INPUT_HEIGHT = 120;  // ~5 lines
-
 export const HzChatScreen: React.FC = () => {
   const router = useRouter();
-  const [thinkingOn, setThinkingOn] = useState(false);
+  const { user } = useAuth();
+  const [thinkingOn, setThinkingOn] = useState(true);
   const [message, setMessage] = useState("");
-  const [inputHeight, setInputHeight] = useState(MIN_INPUT_HEIGHT);
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: "welcome",
+      sender: "agent",
+      text: "Assalam o Alaikum! Main Haazir hoon. Aapko kaunsi service chahiye? Bas batayein — Urdu mein, English mein, ya jis tarah chaahein.",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    },
+  ]);
   const scrollRef = useRef<ScrollView>(null);
+
+  // Clear agent session on screen mount to guarantee fresh context
+  useEffect(() => {
+    const clearSession = async () => {
+      try {
+        await fetch(`${BACKEND_URL}/api/agent/clear`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (err) {
+        console.warn("Failed to reset backend chat session:", err);
+      }
+    };
+    clearSession();
+  }, []);
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+
+    const userMessageText = message;
+    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    
+    // Add user message to state
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender: "user",
+      text: userMessageText,
+      time: timestamp,
+    };
+    setMessages(prev => [...prev, userMsg]);
+    setMessage("");
+    setLoading(true);
+
+    try {
+      // Post user message to backend agent endpoint
+      const response = await fetch(`${BACKEND_URL}/api/agent/process`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userMessageText,
+          mode: "customer",
+          user_id: user?.id || "test_consumer_user",
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const aiResponseText = data.response || "No response received.";
+
+        // Premium parsing of the "Show Haazir's Thinking" reasoning segment
+        let mainText = aiResponseText;
+        let reasoningText = "";
+
+        const thinkingMarkers = [
+          "Show Haazir's Thinking:",
+          "**Show Haazir's Thinking:**",
+          "Show Haazir's Thinking",
+        ];
+
+        let foundMarker = "";
+        for (const marker of thinkingMarkers) {
+          if (aiResponseText.includes(marker)) {
+            foundMarker = marker;
+            break;
+          }
+        }
+
+        if (foundMarker) {
+          const markerIndex = aiResponseText.indexOf(foundMarker);
+          const preText = aiResponseText.substring(0, markerIndex).trim();
+          const postText = aiResponseText.substring(markerIndex).trim();
+          
+          // Split postText into lines to separate list items from final paragraph
+          const lines = postText.split("\n");
+          const thinkingLines: string[] = [];
+          const replyLines: string[] = [];
+          
+          let collectingThinking = true;
+          
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmed = line.trim();
+            
+            if (i === 0) {
+              thinkingLines.push(line);
+              continue;
+            }
+            
+            if (collectingThinking) {
+              const isListPoint = /^\d+\./.test(trimmed) || trimmed.startsWith("-") || trimmed.startsWith("*") || trimmed === "";
+              if (!isListPoint && trimmed.length > 0 && !trimmed.toLowerCase().includes("thinking")) {
+                collectingThinking = false;
+                replyLines.push(line);
+              } else {
+                thinkingLines.push(line);
+              }
+            } else {
+              replyLines.push(line);
+            }
+          }
+          
+          reasoningText = thinkingLines.join("\n").trim();
+          const extractedReply = replyLines.join("\n").trim();
+          mainText = preText ? (preText + "\n\n" + extractedReply).trim() : extractedReply;
+        }
+
+        if (reasoningText && !mainText.trim()) {
+          mainText = "Process complete. Please let me know how you would like to proceed!";
+        }
+
+        const agentMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: "agent",
+          text: mainText,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          reasoning: reasoningText || undefined,
+        };
+        setMessages(prev => [...prev, agentMsg]);
+      } else {
+        const agentMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: "agent",
+          text: `Oops! Server error: ${response.status}`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages(prev => [...prev, agentMsg]);
+      }
+    } catch (err) {
+      const agentMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: "agent",
+        text: "Main offline lag raha hoon. Please check target connection.",
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setMessages(prev => [...prev, agentMsg]);
+    } finally {
+      setLoading(false);
+      // Auto scroll to bottom
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -186,18 +281,9 @@ export const HzChatScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Active booking banner */}
-      <View style={styles.activeBanner}>
-        <Text style={styles.activeBannerText}>Active Job · AC Repair · Ali Hassan</Text>
-        <TouchableOpacity onPress={() => router.push("/(consumer)/active-job")} activeOpacity={0.7}>
-          <Text style={styles.activeBannerLink}>View →</Text>
-        </TouchableOpacity>
-      </View>
-
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior="padding"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         {/* Chat scroll area */}
         <ScrollView
@@ -205,16 +291,36 @@ export const HzChatScreen: React.FC = () => {
           style={styles.chatScroll}
           contentContainerStyle={styles.chatContent}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
-          <AgentBubble text="Assalam o Alaikum! Main Haazir hoon. Aapko kaunsi service chahiye? Bas batayein — Urdu mein, English mein, ya jis tarah chaahein." time="2:14 PM" />
-          <ConsumerBubble text="AC bilkul kaam nahi kar raha, kal subah G-13 mein technician chahiye" time="2:15 PM" />
-          {thinkingOn && <ThinkingBlock />}
-          <AgentBubble text="Samajh gaya! Lagta hai aapka AC completely band hai. Main aapke liye G-13 mein best AC technician dhundh raha hoon. Ek cheez confirm karein:" />
-          <ClarificationCard />
-          <ConsumerBubble text="Ghar ke liye hai." time="2:16 PM" />
-          <AgentBubble text="G-13 mein AC technician mil gaya — Usman Butt. Booking request bhej diya hai." time="2:16 PM" />
-          <ReinitiateCard />
+          {messages.map(msg => {
+            if (msg.sender === "agent") {
+              return (
+                <AgentBubble
+                  key={msg.id}
+                  text={msg.text}
+                  time={msg.time}
+                  reasoning={msg.reasoning}
+                  thinkingOn={thinkingOn}
+                />
+              );
+            } else {
+              return (
+                <ConsumerBubble
+                  key={msg.id}
+                  text={msg.text}
+                  time={msg.time}
+                />
+              );
+            }
+          })}
+
+          {loading && (
+            <View style={styles.loadingWrapper}>
+              <ActivityIndicator size="small" color={Colors.accent} />
+              <Text style={styles.loadingText}>Haazir is thinking...</Text>
+            </View>
+          )}
         </ScrollView>
 
         {/* Chat input bar */}
@@ -224,24 +330,22 @@ export const HzChatScreen: React.FC = () => {
             value={message}
             onChangeText={setMessage}
             placeholderTextColor={Colors.muted}
-            style={[styles.input, { height: inputHeight }]}
-            multiline
-            maxLength={1000}
-            blurOnSubmit={false}
-            textAlignVertical="top"
-            onContentSizeChange={(e) => {
-              const h = e.nativeEvent.contentSize.height;
-              setInputHeight(Math.min(Math.max(h, MIN_INPUT_HEIGHT), MAX_INPUT_HEIGHT));
-            }}
+            onSubmitEditing={handleSend}
+            style={styles.input}
           />
-          <TouchableOpacity activeOpacity={0.8} style={styles.sendBtn}>
+          <TouchableOpacity
+            onPress={handleSend}
+            disabled={loading}
+            activeOpacity={0.8}
+            style={[styles.sendBtn, loading && { backgroundColor: Colors.border }]}
+          >
             <Ionicons name="arrow-up" size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
 
-      {/* Bottom Navigation — outside KeyboardAvoidingView so it stays pinned */}
-      <HzBottomNav role="consumer" activeTab="chat" />
+        {/* Bottom Navigation */}
+        <HzBottomNav role="consumer" activeTab="chat" />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -266,69 +370,32 @@ const styles = StyleSheet.create({
   thinkingToggleOn: { backgroundColor: Colors.accentVeryLight, borderWidth: 1, borderColor: Colors.accent },
   thinkingToggleText: { fontSize: 12, fontWeight: "500", color: Colors.muted },
   thinkingToggleTextOn: { color: Colors.accent },
-  activeBanner: { height: 48, backgroundColor: Colors.accentLight, borderLeftWidth: 4, borderLeftColor: Colors.accent, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
-  activeBannerText: { fontSize: 13, fontWeight: "500", color: Colors.primary },
-  activeBannerLink: { fontSize: 13, fontWeight: "500", color: Colors.accent },
   chatScroll: { flex: 1 },
   chatContent: { padding: 16, gap: 16 },
   
   // Thinking block
-  thinkingBlock: { backgroundColor: Colors.thinking, borderRadius: 12, borderLeftWidth: 3, borderLeftColor: Colors.accent, padding: 16, overflow: "hidden" },
+  thinkingBlock: { backgroundColor: Colors.thinking, borderRadius: 12, borderLeftWidth: 3, borderLeftColor: Colors.accent, padding: 16, overflow: "hidden", marginBottom: 8 },
   thinkingHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
   thinkingTitle: { flex: 1, fontSize: 12, fontWeight: "600", color: Colors.primary },
-  thinkingText: { marginTop: 8, fontSize: 12, fontStyle: "italic", lineHeight: 18, color: "#555555" },
+  thinkingText: { fontSize: 12, fontStyle: "italic", lineHeight: 18, color: "#555555" },
   thinkingMore: { fontSize: 12, fontWeight: "500", color: Colors.accent },
 
   // Bubbles
-  agentBubbleWrapper: { alignItems: "flex-start" },
+  agentBubbleWrapper: { alignItems: "flex-start", width: "100%", marginVertical: 4 },
   agentBubble: { maxWidth: "80%", backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, borderRadius: 18, borderTopLeftRadius: 4, padding: 16, ...Shadows.card },
   agentText: { fontSize: 15, fontWeight: "400", lineHeight: 22, color: Colors.primary },
   agentTime: { marginTop: 4, fontSize: 11, color: Colors.muted, textAlign: "right" },
-  consumerBubbleWrapper: { alignItems: "flex-end" },
+  consumerBubbleWrapper: { alignItems: "flex-end", width: "100%", marginVertical: 4 },
   consumerBubble: { maxWidth: "80%", backgroundColor: Colors.accent, borderRadius: 18, borderTopRightRadius: 4, padding: 16 },
   consumerText: { fontSize: 15, fontWeight: "400", lineHeight: 22, color: Colors.white },
   consumerTime: { marginTop: 4, fontSize: 11, color: "rgba(255,255,255,0.7)", textAlign: "right" },
 
-  // Clarification
-  clarificationCard: { backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 16 },
-  clarificationTitle: { fontSize: 15, fontWeight: "500", lineHeight: 22, color: Colors.primary },
-  clarificationOption: { height: 44, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" },
-  clarificationOptionSelected: { backgroundColor: Colors.accent, borderWidth: 0 },
-  clarificationLabel: { fontSize: 14, fontWeight: "500", color: Colors.primary },
-  clarificationLabelSelected: { color: Colors.white },
-
-  // Reinitiate
-  reinitiateCard: { backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 16 },
-  reinitiateBadge: { backgroundColor: Colors.warning, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 4, fontSize: 12, fontWeight: "500", color: Colors.white },
-  reinitiateTitle: { marginTop: 12, fontSize: 16, fontWeight: "600", color: Colors.primary },
-  reinitiateRow: { height: 36, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: Colors.divider },
-  reinitiateRowLabel: { fontSize: 13, color: Colors.muted },
-  reinitiateRowValue: { fontSize: 14, color: Colors.primary },
-  reinitiateHint: { marginTop: 12, fontSize: 12, fontStyle: "italic", color: Colors.muted },
-  reinitiateBtn: { marginTop: 16, height: 48, borderRadius: 12, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
-  reinitiateBtnText: { fontSize: 14, fontWeight: "600", color: Colors.white },
-  reinitiateCancel: { marginTop: 8, alignItems: "center", paddingVertical: 8 },
-  reinitiateCancelText: { fontSize: 13, color: Colors.muted },
+  // Loading indicator
+  loadingWrapper: { flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 12, marginVertical: 8 },
+  loadingText: { fontSize: 13, color: Colors.muted },
 
   // Input bar
-  inputBar: {
-    minHeight: 56,
-    backgroundColor: Colors.white,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: Colors.primary,
-    maxHeight: 120,
-    paddingTop: Platform.OS === "ios" ? 8 : 4,
-    paddingBottom: Platform.OS === "ios" ? 8 : 4,
-  },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  inputBar: { height: 56, backgroundColor: Colors.white, borderTopWidth: 1, borderTopColor: Colors.divider, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 12 },
+  input: { flex: 1, fontSize: 15, color: Colors.primary, height: 40 },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
 });

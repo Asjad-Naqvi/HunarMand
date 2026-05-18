@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { HzBottomNav } from "../../haazir/shared/HzBottomNav";
 import { Colors, Shadows } from "../../constants/theme";
+import { useAuth } from "../../../lib/AuthContext";
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <View style={styles.sectionHeader}>
@@ -36,6 +37,14 @@ const ListRow: React.FC<ListRowProps> = ({ icon, label, last, value, onPress }) 
 
 export const HzProfileScreen: React.FC = () => {
   const router = useRouter();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: async () => { await signOut(); } },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -52,9 +61,9 @@ export const HzProfileScreen: React.FC = () => {
         <View style={[styles.card, Shadows.card]}>
           <View style={styles.avatar}><Ionicons name="person" size={32} color={Colors.white} /></View>
           <View style={styles.profileInfo}>
-            <Text style={styles.nameText}>Sana Malik</Text>
-            <Text style={styles.contactText}>+92 321 4567890</Text>
-            <Text style={styles.contactText}>sana.malik@email.com</Text>
+            <Text style={styles.nameText}>{user?.name ?? "User"}</Text>
+            {user?.phone ? <Text style={styles.contactText}>{user.phone}</Text> : null}
+            {user?.email ? <Text style={styles.contactText}>{user.email}</Text> : null}
           </View>
           <View style={styles.badgesRow}>
             <View style={styles.bronzeBadge}>
@@ -108,7 +117,7 @@ export const HzProfileScreen: React.FC = () => {
         </View>
 
         {/* Sign Out */}
-        <TouchableOpacity onPress={() => router.replace("/login")} style={styles.signOutBtn}>
+        <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 

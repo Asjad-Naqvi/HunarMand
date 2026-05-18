@@ -1,24 +1,42 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Linking } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Linking, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Shadows } from "../../constants/theme";
+import { supabase } from "../../../lib/supabase";
+import { useAuth } from "../../../lib/AuthContext";
 
 type StepState = "done" | "active" | "pending";
 interface Step { label: string; state: StepState; }
 
-// Step index progression: 0=Confirmed, 1=EnRoute, 2=Arrived, 3=InProgress, 4=Completed
+const STATUS_MAP: Record<string, { index: number; label: string }> = {
+  pending_provider_acceptance: { index: 0, label: "Awaiting Your Acceptance" },
+  confirmed: { index: 1, label: "Job Confirmed" },
+  en_route: { index: 2, label: "En Route to Consumer" },
+  arrived: { index: 3, label: "Arrived at Location" },
+  in_progress: { index: 4, label: "Job In Progress" },
+  completed: { index: 5, label: "Job Completed" },
+};
+
+// Step index progression: 0=Awaiting, 1=Confirmed, 2=EnRoute, 3=Arrived, 4=InProgress, 5=Completed
 const buildSteps = (activeIndex: number): Step[] => [
-  { label: "Confirmed",   state: activeIndex > 0 ? "done" : activeIndex === 0 ? "active" : "pending" },
-  { label: "En Route",    state: activeIndex > 1 ? "done" : activeIndex === 1 ? "active" : "pending" },
-  { label: "Arrived",     state: activeIndex > 2 ? "done" : activeIndex === 2 ? "active" : "pending" },
-  { label: "In Progress", state: activeIndex > 3 ? "done" : activeIndex === 3 ? "active" : "pending" },
-  { label: "Completed",   state: activeIndex > 4 ? "done" : activeIndex === 4 ? "active" : "pending" },
+  { label: "Confirmed",   state: activeIndex > 1 ? "done" : activeIndex === 1 ? "active" : "pending" },
+  { label: "En Route",    state: activeIndex > 2 ? "done" : activeIndex === 2 ? "active" : "pending" },
+  { label: "Arrived",     state: activeIndex > 3 ? "done" : activeIndex === 3 ? "active" : "pending" },
+  { label: "In Progress", state: activeIndex > 4 ? "done" : activeIndex === 4 ? "active" : "pending" },
+  { label: "Completed",   state: activeIndex > 5 ? "done" : activeIndex === 5 ? "active" : "pending" },
 ];
 
-const STATUS_LABELS = ["En Route to Consumer", "En Route to Consumer", "Arrived at Location", "Job In Progress", "Job Completed"];
+const SERVICE_CODE_MAP: Record<string, string> = {
+  "HS-04": "AC Repair & Service",
+  "HS-03": "Electrician Services",
+  "HS-01": "Plumbing Work",
+  "HS-02": "Carpenter Services",
+  "CS-01": "Carpet Cleaning",
+  "CS-02": "Sofa Cleaning",
+};
 
 const StepNode: React.FC<{ step: Step }> = ({ step }) => {
   const color = step.state === "done" ? Colors.success : step.state === "active" ? Colors.accent : Colors.border;
@@ -30,7 +48,7 @@ const StepNode: React.FC<{ step: Step }> = ({ step }) => {
   );
 };
 
-const ProgressBanner: React.FC<{ steps: Step[]; activeIndex: number }> = ({ steps, activeIndex }) => (
+const ProgressBanner: React.FC<{ steps: Step[]; statusLabel: string }> = ({ steps, statusLabel }) => (
   <View style={styles.progressBanner}>
     <View style={styles.stepsRow}>
       {steps.map((step, i) => (
@@ -42,7 +60,7 @@ const ProgressBanner: React.FC<{ steps: Step[]; activeIndex: number }> = ({ step
         </React.Fragment>
       ))}
     </View>
-    <Text style={styles.progressText}>Currently: {STATUS_LABELS[activeIndex]}</Text>
+    <Text style={styles.progressText}>Currently: {statusLabel}</Text>
   </View>
 );
 
@@ -65,16 +83,115 @@ const StatusButton: React.FC<{ label: string; variant: "primary" | "disabled" | 
 
 export const HzProviderActiveJob: React.FC = () => {
   const router = useRouter();
-  // activeIndex: 1=EnRoute(start), 2=Arrived, 3=InProgress, 4=Completed
-  const [activeIndex, setActiveIndex] = useState(1);
-  const steps = buildSteps(activeIndex);
+  const { user } = useAuth();
+  const [booking, setBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleArrived = () => setActiveIndex(2);
-  const handleInProgress = () => setActiveIndex(3);
-  const handleCompleted = () => {
-    setActiveIndex(4);
-    setTimeout(() => router.replace("/(provider)/rate-consumer"), 800);
+  const fetchActiveJob = async () => {
+    if (!user?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          service_code,
+          final_estimate_pkr,
+          requested_date,
+          requested_time_slot,
+          consumer:users!consumer_id(name, phone)
+        `)
+        .eq("provider_id", user.id)
+        .not("status", "in", "(completed,cancelled,expired)")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+      setBooking(data && data.length > 0 ? data[0] : null);
+    } catch (err: any) {
+      console.warn("Failed to load active job:", err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchActiveJob();
+  }, [user]);
+
+  const handleUpdateStatus = async (nextStatus: string) => {
+    if (!booking) return;
+    try {
+      console.log(`Updating booking ${booking.id} to status: ${nextStatus}`);
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: nextStatus })
+        .eq("id", booking.id);
+
+      if (error) throw error;
+
+      let alertTitle = "Status Updated";
+      let alertMsg = `Your job status is now: ${nextStatus}.`;
+
+      if (nextStatus === "confirmed") {
+        alertTitle = "Job Accepted ✓";
+        alertMsg = "You have accepted this job. Tap 'Start Travel' when you are ready to head out!";
+      } else if (nextStatus === "en_route") {
+        alertTitle = "En Route 🚗";
+        alertMsg = "You are on your way to the consumer's location. Drive safely!";
+      } else if (nextStatus === "arrived") {
+        alertTitle = "Arrived at Location 📍";
+        alertMsg = "You have arrived at the destination. Tap 'Start Work' when you begin the service!";
+      } else if (nextStatus === "in_progress") {
+        alertTitle = "Job in Progress 🛠️";
+        alertMsg = "You have started the service. Tap 'Mark as Completed' once the job is fully done!";
+      }
+
+      if (nextStatus === "completed") {
+        Alert.alert("Job Finished! 🎉", "You completed the service. Let's rate your experience!", [
+          { text: "Rate Client", onPress: () => router.replace("/(provider)/rate-consumer") }
+        ]);
+      } else {
+        Alert.alert(alertTitle, alertMsg, [
+          { text: "OK", onPress: fetchActiveJob }
+        ]);
+      }
+    } catch (err: any) {
+      console.error("Failed to update status:", err.message);
+      Alert.alert("Update Failed", err.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator color={Colors.accent} size="large" style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
+
+  // If no active booking, render clean empty state
+  if (!booking) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <StatusBar style="dark" backgroundColor={Colors.bg} />
+        <View style={styles.topBar}>
+          <Text style={styles.title}>Active Dispatch</Text>
+        </View>
+        <View style={styles.emptyState}>
+          <Ionicons name="briefcase-outline" size={48} color={Colors.border} />
+          <Text style={styles.emptyTitle}>All caught up!</Text>
+          <Text style={styles.emptySubtitle}>You do not have any active service sessions assigned at this time.</Text>
+          <TouchableOpacity onPress={fetchActiveJob} style={styles.refreshBtn}>
+            <Text style={styles.refreshBtnText}>🔄 Check for new jobs</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const activeConfig = STATUS_MAP[booking.status] || { index: 0, label: "Pending" };
+  const steps = buildSteps(activeConfig.index);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -84,10 +201,10 @@ export const HzProviderActiveJob: React.FC = () => {
         <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.title} pointerEvents="none">Active Job</Text>
+        <Text style={styles.title}>Active Job Tracking</Text>
       </View>
 
-      <ProgressBanner steps={steps} activeIndex={activeIndex} />
+      <ProgressBanner steps={steps} statusLabel={activeConfig.label} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
@@ -95,63 +212,72 @@ export const HzProviderActiveJob: React.FC = () => {
         <View style={[styles.card, Shadows.card]}>
           <View style={styles.cardTopRow}>
             <Text style={styles.cardTitle}>Consumer Address</Text>
-            <TouchableOpacity onPress={() => Linking.openURL("https://maps.google.com/?q=House+12+Street+4+G-13+Islamabad")}>
-              <Text style={styles.linkText}>Tap for Maps</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(`https://maps.google.com/?q=Sector+G-13+Islamabad`)}>
+              <Text style={styles.linkText}>Tap for Directions</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.addressRow}>
             <Ionicons name="location" size={20} color={Colors.accent} style={{ marginTop: 2 }} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.addressLine1}>House 12, Street 4, G-13/1, Islamabad</Text>
-              <Text style={styles.addressLine2}>G-13, Islamabad</Text>
+              <Text style={styles.addressLine1}>Sector G-13, Islamabad</Text>
+              <Text style={styles.addressLine2}>Client pin matches sector coverage map.</Text>
             </View>
           </View>
-          <Text style={styles.addressHint}>Address revealed because you accepted this job.</Text>
+          <Text style={styles.addressHint}>Exact client contact is revealed post-booking.</Text>
         </View>
 
         {/* Job Details */}
         <View style={[styles.card, Shadows.card]}>
-          <Text style={styles.cardTitle}>Job Details</Text>
+          <Text style={styles.cardTitle}>Job Specification</Text>
           <View style={styles.divider} />
-          <DetailRow label="Service" value="AC Repairing" />
-          <DetailRow label="Consumer" value="Sana M." />
-          <DetailRow label="Scheduled" value="Sat 18 May · 9:00 AM" />
-          <DetailRow label="Your Earnings" value="PKR 2,800" valueColor={Colors.success} valueBold last />
+          <DetailRow label="Service Type" value={SERVICE_CODE_MAP[booking.service_code] || booking.service_code} />
+          <DetailRow label="Customer Name" value={booking.consumer?.name || "Client"} />
+          <DetailRow label="Request Timing" value={`${booking.requested_date} · ${booking.requested_time_slot}`} />
+          <DetailRow label="Your Earnings" value={`PKR ${booking.final_estimate_pkr}`} valueColor={Colors.success} valueBold last />
         </View>
 
-        {/* Status Update */}
+        {/* Status Update Controls */}
         <View style={[styles.card, Shadows.card]}>
           <Text style={styles.cardTitle}>Update Job Status</Text>
           <View style={styles.btnGroup}>
-            {activeIndex === 1 && (
-              <StatusButton label="Mark as Arrived" variant="primary" onPress={handleArrived} />
+            {booking.status === "pending_provider_acceptance" && (
+              <View style={{ gap: 12 }}>
+                <StatusButton label="Accept Job Booking" variant="primary" onPress={() => handleUpdateStatus("confirmed")} />
+                <StatusButton label="Decline Job Booking" variant="secondary" onPress={() => handleUpdateStatus("cancelled")} />
+              </View>
             )}
-            {activeIndex === 2 && (
-              <StatusButton label="Mark as In Progress" variant="primary" onPress={handleInProgress} />
+            {booking.status === "confirmed" && (
+              <StatusButton label="Start Travel (En Route)" variant="primary" onPress={() => handleUpdateStatus("en_route")} />
             )}
-            {activeIndex === 3 && (
-              <StatusButton label="Mark as Completed" variant="primary" onPress={handleCompleted} />
+            {booking.status === "en_route" && (
+              <StatusButton label="Mark as Arrived" variant="primary" onPress={() => handleUpdateStatus("arrived")} />
             )}
-            {activeIndex === 4 && (
+            {booking.status === "arrived" && (
+              <StatusButton label="Start Work (In Progress)" variant="primary" onPress={() => handleUpdateStatus("in_progress")} />
+            )}
+            {booking.status === "in_progress" && (
+              <StatusButton label="Mark as Completed" variant="primary" onPress={() => handleUpdateStatus("completed")} />
+            )}
+            {booking.status === "completed" && (
               <StatusButton label="Job Completed ✓" variant="disabled" />
             )}
             <StatusButton
-              label="Report Issue"
+              label="Report Dispute / Issue"
               variant="secondary"
               onPress={() => router.push("/(provider)/dispute-chat")}
             />
           </View>
         </View>
 
-        {/* Contact */}
+        {/* Contact Client Card */}
         <View style={[styles.card, Shadows.card]}>
           <View style={styles.contactHeaderRow}>
             <Ionicons name="call" size={20} color={Colors.accent} />
-            <Text style={styles.contactHeaderText}>Consumer Contact (post-accept)</Text>
+            <Text style={styles.contactHeaderText}>Consumer Direct Contact</Text>
           </View>
           <View style={styles.contactBottomRow}>
-            <Text style={styles.contactPhone}>+92 321 4567890</Text>
-            <TouchableOpacity onPress={() => Linking.openURL("tel:+923214567890")} style={styles.callBtn}>
+            <Text style={styles.contactPhone}>{booking.consumer?.phone || "+92 311 1234509"}</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(`tel:${booking.consumer?.phone}`)} style={styles.callBtn}>
               <Ionicons name="call" size={20} color={Colors.accent} />
             </TouchableOpacity>
           </View>
@@ -208,4 +334,10 @@ const styles = StyleSheet.create({
   contactBottomRow: { marginTop: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   contactPhone: { fontSize: 15, fontWeight: "600", color: Colors.primary },
   callBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accentLight, alignItems: "center", justifyContent: "center" },
+
+  emptyState: { flex: 1, justifyContent: "center", alignItems: "center", padding: 32, gap: 12, marginTop: 64 },
+  emptyTitle: { fontSize: 18, fontWeight: "700", color: Colors.primary, marginTop: 8 },
+  emptySubtitle: { fontSize: 14, color: Colors.muted, textAlign: "center", paddingHorizontal: 16, lineHeight: 20 },
+  refreshBtn: { marginTop: 12, height: 44, paddingHorizontal: 20, borderRadius: 22, backgroundColor: Colors.accentLight, justifyContent: "center", alignItems: "center" },
+  refreshBtnText: { fontSize: 14, fontWeight: "600", color: Colors.accent },
 });

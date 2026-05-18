@@ -1,24 +1,49 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { HzBottomNav } from "../../haazir/shared/HzBottomNav";
 import { Colors, Shadows } from "../../constants/theme";
+import { useAuth } from "../../../lib/AuthContext";
+import { supabase } from "../../../lib/supabase";
 
-const ActiveJobBanner: React.FC<{ onPress: () => void }> = ({ onPress }) => (
-  <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.activeJobBanner}>
-    <View style={styles.activeJobLeft}>
-      <View style={styles.activeJobDot} />
-      <View>
-        <Text style={styles.activeJobLabel}>Active Job In Progress</Text>
-        <Text style={styles.activeJobSub}>AC Repairing · En Route · Sana M.</Text>
+const SERVICE_CODE_MAP: Record<string, string> = {
+  "HS-04": "AC Repair & Service",
+  "HS-03": "Electrician Services",
+  "HS-01": "Plumbing Work",
+  "HS-02": "Carpenter Services",
+  "CS-01": "Carpet Cleaning",
+  "CS-02": "Sofa Cleaning",
+};
+
+const STATUS_MAP: Record<string, { label: string }> = {
+  pending_provider_acceptance: { label: "Awaiting Acceptance" },
+  confirmed: { label: "Job Confirmed" },
+  en_route: { label: "En Route" },
+  arrived: { label: "Arrived" },
+  in_progress: { label: "In Progress" },
+};
+
+const ActiveJobBanner: React.FC<{ booking: any; onPress: () => void }> = ({ booking, onPress }) => {
+  if (!booking) return null;
+  const serviceName = SERVICE_CODE_MAP[booking.service_code] || booking.service_code;
+  const statusLabel = STATUS_MAP[booking.status]?.label || booking.status;
+  const consumerName = booking.consumer?.name || "Customer";
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.activeJobBanner}>
+      <View style={styles.activeJobLeft}>
+        <View style={styles.activeJobDot} />
+        <View>
+          <Text style={styles.activeJobLabel}>Active Job In Progress</Text>
+          <Text style={styles.activeJobSub}>{serviceName} · {statusLabel} · {consumerName}</Text>
+        </View>
       </View>
-    </View>
-    <Text style={styles.activeJobCta}>Open →</Text>
-  </TouchableOpacity>
-);
+      <Text style={styles.activeJobCta}>Open →</Text>
+    </TouchableOpacity>
+  );
+};
 
 const AvailabilityToggle: React.FC = () => {
   const [available, setAvailable] = useState(true);
@@ -73,18 +98,18 @@ const AdvisorCard: React.FC<{ emoji: string; type: string; typeColor: string; bo
   </View>
 );
 
-const JobCard: React.FC<{ service: string; timePill: string; location: string; estimate: string }> = ({ service, timePill, location, estimate }) => (
+const JobCard: React.FC<{ service: string; timePill: string; location: string; estimate: string; onPress?: () => void }> = ({ service, timePill, location, estimate, onPress }) => (
   <View style={[styles.card, Shadows.card]}>
     <View style={styles.jobTopRow}>
       <Text style={styles.jobService}>{service}</Text>
-      <View style={styles.jobPill}>
+      <View style={[styles.jobPill, { backgroundColor: timePill === "Pending" ? Colors.warning : Colors.success }]}>
         <Text style={styles.jobPillText}>{timePill}</Text>
       </View>
     </View>
     <Text style={styles.jobLocation}>{location}</Text>
     <View style={styles.jobBottomRow}>
       <Text style={styles.jobEstimate}>{estimate}</Text>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={onPress}>
         <Text style={styles.jobViewText}>View →</Text>
       </TouchableOpacity>
     </View>
@@ -111,12 +136,51 @@ const QuickLinkRow: React.FC<{ label: string; last?: boolean; onPress?: () => vo
 
 export const HzProviderDashboard: React.FC = () => {
   const router = useRouter();
+  const { user } = useAuth();
+  const [activeJob, setActiveJob] = useState<any>(null);
+  const [upcomingJobs, setUpcomingJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboardData = async () => {
+    if (!user?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          service_code,
+          final_estimate_pkr,
+          requested_date,
+          requested_time_slot,
+          consumer:users!consumer_id(name)
+        `)
+        .eq("provider_id", user.id)
+        .not("status", "in", "(completed,cancelled,expired)")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const active = (data || []).find(b => ["en_route", "arrived", "in_progress"].includes(b.status));
+      const upcoming = (data || []).filter(b => ["confirmed", "pending_provider_acceptance"].includes(b.status));
+
+      setActiveJob(active || null);
+      setUpcomingJobs(upcoming);
+    } catch (err: any) {
+      console.warn("Failed to load dashboard bookings:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [user]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar style="dark" backgroundColor={Colors.bg} />
       
-      {/* Top Bar */}
       <View style={styles.topBar}>
         <View style={styles.logoWrap}>
           <View style={styles.logoCircle}><Text style={styles.logoChar}>H</Text></View>
@@ -124,11 +188,22 @@ export const HzProviderDashboard: React.FC = () => {
         </View>
         <TouchableOpacity style={styles.bellBtn} onPress={() => router.push("/inbox")}>
           <Ionicons name="notifications-outline" size={24} color={Colors.primary} />
-          <View style={styles.badge}><Text style={styles.badgeText}>2</Text></View>
+          {upcomingJobs.filter(b => b.status === "pending_provider_acceptance").length > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {upcomingJobs.filter(b => b.status === "pending_provider_acceptance").length}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
-      <ActiveJobBanner onPress={() => router.push("/(provider)/active-job")} />
+      {activeJob && (
+        <ActiveJobBanner 
+          booking={activeJob} 
+          onPress={() => router.push("/(provider)/active-job")} 
+        />
+      )}
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
@@ -147,10 +222,33 @@ export const HzProviderDashboard: React.FC = () => {
 
         <View style={styles.section}>
           <SectionHeader title="Upcoming Jobs" />
-          <View style={styles.jobList}>
-            <JobCard service="AC Repairing" timePill="Tomorrow · 9 AM" location="G-13 · House 12, Street 4" estimate="Est. PKR 2,873" />
-            <JobCard service="Sofa Cleaning" timePill="Mon 20 May · 11 AM" location="F-7 · Apartment 3B" estimate="Est. PKR 1,500" />
-          </View>
+          {loading ? (
+            <ActivityIndicator size="small" color={Colors.accent} style={{ marginTop: 24 }} />
+          ) : upcomingJobs.length === 0 ? (
+            <View style={[styles.card, Shadows.card, { alignItems: "center", paddingVertical: 24, marginTop: 12 }]}>
+              <Ionicons name="calendar-outline" size={32} color={Colors.muted} />
+              <Text style={{ fontSize: 13, color: Colors.muted, marginTop: 8 }}>No upcoming jobs at the moment.</Text>
+            </View>
+          ) : (
+            <View style={styles.jobList}>
+              {upcomingJobs.map((job) => {
+                const serviceName = SERVICE_CODE_MAP[job.service_code] || job.service_code;
+                const timeStr = `${job.requested_date} · ${job.requested_time_slot || "ASAP"}`;
+                const estimateStr = `Est. PKR ${job.final_estimate_pkr || "1,000"}`;
+                const locationStr = `Customer: ${job.consumer?.name || "Customer"}`;
+                return (
+                  <JobCard 
+                    key={job.id}
+                    service={serviceName} 
+                    timePill={job.status === "pending_provider_acceptance" ? "Pending" : "Confirmed"} 
+                    location={locationStr} 
+                    estimate={estimateStr}
+                    onPress={() => router.push(job.status === "pending_provider_acceptance" ? "/inbox" : "/(provider)/active-job")}
+                  />
+                );
+              })}
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>

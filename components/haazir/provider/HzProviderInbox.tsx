@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { HzBottomNav } from "../../haazir/shared/HzBottomNav";
 import { Colors, Shadows } from "../../constants/theme";
+import { useAuth } from "../../../lib/AuthContext";
+import { supabase } from "../../../lib/supabase";
 
 function useCountdown(initialSeconds: number) {
   const [seconds, setSeconds] = useState(initialSeconds);
@@ -50,7 +52,7 @@ const JobRequestCard: React.FC<JobRequestCardProps> = ({ service, location, date
 
     <Text style={styles.jobService}>{service}</Text>
     <Text style={styles.jobLocation}>{location} · {datetime}</Text>
-    <Text style={styles.jobEarnText}>Est. earn: {earn} <Text style={styles.jobEarnHint}>(Haazir subsidy incl.)</Text></Text>
+    <Text style={styles.jobEarnText}>Est. earn: {earn} <Text style={styles.jobEarnHint}>(subsidy incl.)</Text></Text>
     <Text style={styles.jobRating}>Consumer Rating: {consumerRating}</Text>
 
     <View style={styles.divider} />
@@ -66,10 +68,41 @@ const JobRequestCard: React.FC<JobRequestCardProps> = ({ service, location, date
   </TouchableOpacity>
 );
 
+interface DisputeCardProps {
+  service: string;
+  consumerName: string;
+  datetime: string;
+  message: string;
+  onResolve?: () => void;
+}
+
+const DisputeCard: React.FC<DisputeCardProps> = ({ service, consumerName, datetime, message, onResolve }) => (
+  <View style={[styles.jobCard, Shadows.card, { borderLeftColor: "#ef4444" }]}>
+    <View style={styles.jobTopRow}>
+      <Text style={[styles.jobNewText, { color: "#ef4444" }]}>⚠️ Customer Dispute</Text>
+    </View>
+
+    <Text style={styles.jobService}>{service}</Text>
+    <Text style={styles.jobLocation}>Customer: {consumerName} · {datetime}</Text>
+    
+    <View style={{ backgroundColor: "#fef2f2", borderRadius: 8, padding: 10, marginVertical: 8, borderWidth: 1, borderColor: "#fee2e2" }}>
+      <Text style={{ fontSize: 13, color: "#991b1b", fontStyle: "italic", lineHeight: 18 }}>
+        💬 Customer's Message: "{message}"
+      </Text>
+    </View>
+
+    <View style={styles.jobActionRow}>
+      <TouchableOpacity onPress={onResolve} style={[styles.acceptBtn, { backgroundColor: "#10b981" }]}>
+        <Text style={styles.acceptBtnText}>Resolve Dispute ✓</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
 const SectionHeader: React.FC<{ title: string; badge?: number }> = ({ title, badge }) => (
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    {badge != null && (
+    {badge != null && badge > 0 && (
       <View style={styles.sectionBadge}>
         <Text style={styles.sectionBadgeText}>{badge}</Text>
       </View>
@@ -102,18 +135,130 @@ interface Notif {
 }
 
 const INITIAL_NOTIFS: Notif[] = [
-  { id: "1", icon: "notifications",        iconColor: Colors.accent, text: "Consumer Sana Malik left you a 4.8 rating.",                             time: "2h ago",   unread: true  },
-  { id: "2", icon: "information-circle-outline", iconColor: Colors.muted,  text: "Your availability for Sunday has been updated.",                    time: "Yesterday", unread: false },
-  { id: "3", icon: "bar-chart-outline",    iconColor: Colors.muted,  text: "Haazir Advisor: High AC Repair demand in G-10 this weekend.",          time: "2d ago",   unread: false },
+  { id: "1", icon: "notifications",        iconColor: Colors.accent, text: "Welcome to Haazir! Start receiving job dispatches instantly.", time: "Today", unread: true  },
 ];
+
+const SERVICE_CODE_MAP: Record<string, string> = {
+  "HS-04": "AC Repair & Service",
+  "HS-03": "Electrician Services",
+  "HS-01": "Plumbing Work",
+  "HS-02": "Carpenter Services",
+  "CS-01": "Carpet Cleaning",
+  "CS-02": "Sofa Cleaning",
+};
 
 export const HzProviderInbox: React.FC = () => {
   const router = useRouter();
+  const { user } = useAuth();
+  const [jobRequests, setJobRequests] = useState<any[]>([]);
+  const [disputedJobs, setDisputedJobs] = useState<any[]>([]);
   const [notifs, setNotifs] = useState<Notif[]>(INITIAL_NOTIFS);
+  const [loading, setLoading] = useState(true);
+
+  const fetchInbox = async () => {
+    if (!user?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          service_code,
+          final_estimate_pkr,
+          requested_date,
+          requested_time_slot,
+          consumer:users!consumer_id(name),
+          disputes!booking_id(description_json, status)
+        `)
+        .eq("provider_id", user.id)
+        .in("status", ["pending_provider_acceptance", "disputed"])
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      const requests = (data || []).filter(b => b.status === "pending_provider_acceptance");
+      const disputes = (data || []).filter(b => b.status === "disputed");
+
+      setJobRequests(requests);
+      setDisputedJobs(disputes);
+    } catch (err: any) {
+      console.warn("Failed to load inbox requests:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInbox();
+  }, [user]);
+
+  const handleUpdateStatus = async (bookingId: string, nextStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: nextStatus })
+        .eq("id", bookingId);
+
+      if (error) throw error;
+      
+      Alert.alert(
+        nextStatus === "confirmed" ? "Job Accepted ✓" : "Job Declined ❌",
+        nextStatus === "confirmed" 
+          ? "The job is confirmed. Go to the Active Job tab to track progress!" 
+          : "You declined the request.",
+        [{ text: "OK", onPress: () => {
+          fetchInbox();
+          if (nextStatus === "confirmed") {
+            router.push("/(provider)/active-job" as any);
+          }
+        }}]
+      );
+    } catch (err: any) {
+      Alert.alert("Action Failed", err.message);
+    }
+  };
+
+  // Resolve Customer Dispute
+  const handleResolveDispute = async (bookingId: string) => {
+    try {
+      setLoading(true);
+      
+      // 1. Update dispute status to resolved
+      const { error: disputeErr } = await supabase
+        .from("disputes")
+        .update({ status: "resolved", resolved_at: new Date().toISOString() })
+        .eq("booking_id", bookingId);
+
+      if (disputeErr) throw disputeErr;
+
+      // 2. Update booking status to completed
+      const { error: bookingErr } = await supabase
+        .from("bookings")
+        .update({ status: "completed" })
+        .eq("id", bookingId);
+
+      if (bookingErr) throw bookingErr;
+
+      Alert.alert("Dispute Resolved ✓", "You have successfully resolved the customer's dispute. The job is marked as completed!");
+      fetchInbox();
+    } catch (err: any) {
+      Alert.alert("Failed to resolve dispute", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
   const markRead = (id: string) => setNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
   const unreadCount = notifs.filter(n => n.unread).length;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator color={Colors.accent} size="large" style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -132,36 +277,65 @@ export const HzProviderInbox: React.FC = () => {
         
         {/* New Job Requests */}
         <View style={styles.section}>
-          <SectionHeader title="New Job Requests" badge={2} />
+          <SectionHeader title="New Job Dispatches" badge={jobRequests.length} />
           <View style={styles.cardsList}>
-            <JobRequestCard
-              service="AC Repairing"
-              location="G-13, Islamabad"
-              datetime="Tomorrow 9:00 AM"
-              earn="PKR 2,873"
-              consumerRating="★ 4.7"
-              countdownSeconds={683}
-              onPress={() => router.push("/job-request")}
-              onAccept={() => {}}
-              onDecline={() => {}}
-            />
-            <JobRequestCard
-              service="Sofa Cleaning"
-              location="F-7, Islamabad"
-              datetime="Mon 20 May · 11 AM"
-              earn="PKR 1,500"
-              consumerRating="★ 4.9"
-              countdownSeconds={291}
-              onPress={() => router.push("/job-request")}
-              onAccept={() => {}}
-              onDecline={() => {}}
-            />
+            {jobRequests.length > 0 ? (
+              jobRequests.map(job => (
+                <JobRequestCard
+                  key={job.id}
+                  service={SERVICE_CODE_MAP[job.service_code] || job.service_code}
+                  location="G-13, Islamabad"
+                  datetime={`${job.requested_date} · ${job.requested_time_slot}`}
+                  earn={`PKR ${job.final_estimate_pkr}`}
+                  consumerRating="★ 5.0"
+                  countdownSeconds={900}
+                  onPress={() => router.push("/(provider)/active-job")}
+                  onAccept={() => handleUpdateStatus(job.id, "confirmed")}
+                  onDecline={() => handleUpdateStatus(job.id, "cancelled")}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyCard}>
+                <Ionicons name="mail-open-outline" size={32} color={Colors.border} />
+                <Text style={styles.emptyText}>No pending dispatches right now.</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Customer Disputes Section */}
+        <View style={styles.section}>
+          <SectionHeader title="Active Customer Disputes" badge={disputedJobs.length} />
+          <View style={styles.cardsList}>
+            {disputedJobs.length > 0 ? (
+              disputedJobs.map(job => {
+                const disputeMsg = job.disputes && job.disputes.length > 0 
+                  ? job.disputes[0].description_json?.message || "Service quality complaint"
+                  : "Service quality complaint";
+
+                return (
+                  <DisputeCard
+                    key={job.id}
+                    service={SERVICE_CODE_MAP[job.service_code] || job.service_code}
+                    consumerName={job.consumer?.name || "Customer"}
+                    datetime={`${job.requested_date} · ${job.requested_time_slot}`}
+                    message={disputeMsg}
+                    onResolve={() => handleResolveDispute(job.id)}
+                  />
+                );
+              })
+            ) : (
+              <View style={styles.emptyCard}>
+                <Ionicons name="shield-checkmark-outline" size={32} color={Colors.border} />
+                <Text style={styles.emptyText}>Excellent! No active customer disputes.</Text>
+              </View>
+            )}
           </View>
         </View>
 
         {/* Notifications */}
         <View style={styles.section}>
-          <SectionHeader title="Other Notifications" />
+          <SectionHeader title="Other Alerts" />
         </View>
         <View style={styles.notifsList}>
           {notifs.map((n, i) => (
@@ -226,4 +400,7 @@ const styles = StyleSheet.create({
   notifText: { flex: 1, fontSize: 14, color: Colors.muted },
   notifTime: { fontSize: 11, color: Colors.muted },
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent },
+
+  emptyCard: { backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 24, alignItems: "center", gap: 8 },
+  emptyText: { fontSize: 13, color: Colors.muted },
 });

@@ -1,11 +1,13 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { HzBottomNav } from "../../haazir/shared/HzBottomNav";
 import { Colors, Shadows } from "../../constants/theme";
+import { useAuth } from "../../../lib/AuthContext";
+import { supabase } from "../../../lib/supabase";
 
 const StatTile: React.FC<{ value: string; label: string; last?: boolean }> = ({ value, label, last }) => (
   <View style={[styles.statTile, last && { borderRightWidth: 0 }]}>
@@ -38,8 +40,73 @@ const AccountRow: React.FC<{ label: string; last?: boolean }> = ({ label, last }
   </TouchableOpacity>
 );
 
+const SERVICE_CODE_MAP: Record<string, string> = {
+  "HS-04": "AC Repairing",
+  "HS-03": "Electrician",
+  "HS-01": "Plumbing",
+  "HS-02": "Carpenter",
+  "CS-01": "Carpet Cleaning",
+  "CS-02": "Sofa Cleaning",
+};
+
 export const HzProviderProfile: React.FC = () => {
   const router = useRouter();
+  const { user, signOut } = useAuth();
+  const [profileData, setProfileData] = useState<any>(null);
+  const [services, setServices] = useState<string[]>([]);
+  const [sectors, setSectors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProviderData = async () => {
+    if (!user?.id) return;
+    try {
+      // 1. Fetch provider profile details
+      const { data: profile, error: profileErr } = await supabase
+        .from("provider_profiles")
+        .select("jobs_completed, base_rating, member_since")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profileErr) console.warn("Profile fetch warning:", profileErr.message);
+
+      // 2. Fetch registered services
+      const { data: provServices } = await supabase
+        .from("provider_services")
+        .select("service_code")
+        .eq("provider_id", user.id);
+
+      // 3. Fetch served sectors
+      const { data: provSectors } = await supabase
+        .from("provider_sectors")
+        .select("sector")
+        .eq("provider_id", user.id);
+
+      setProfileData(profile);
+      setServices(provServices ? provServices.map(s => SERVICE_CODE_MAP[s.service_code] || s.service_code) : []);
+      setSectors(provSectors ? provSectors.map(s => s.sector) : []);
+    } catch (err: any) {
+      console.warn("Failed to load provider profile details:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProviderData();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator color={Colors.accent} size="large" style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
+
+  // Calculate dynamic member year
+  const memberSinceYear = profileData?.member_since
+    ? new Date(profileData.member_since).getFullYear()
+    : new Date().getFullYear();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -58,20 +125,20 @@ export const HzProviderProfile: React.FC = () => {
           </View>
 
           <View style={styles.infoCol}>
-            <Text style={styles.nameText}>Zain Ul Abideen</Text>
+            <Text style={styles.nameText}>{user?.name || "Service Partner"}</Text>
             <View style={styles.verifiedBadge}>
               <Text style={styles.verifiedText}>✓ Haazir Verified</Text>
             </View>
-            <Text style={styles.phoneText}>+92 300 9876543</Text>
-            <Text style={styles.memberText}>Member since March 2025</Text>
+            <Text style={styles.phoneText}>{user?.phone || "+92 311 1234510"}</Text>
+            <Text style={styles.memberText}>Member since {memberSinceYear}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.statsRow}>
-            <StatTile value="42 Jobs" label="Completed" />
-            <StatTile value="★ 4.8" label="Rating" />
-            <StatTile value="94%" label="On Time" last />
+            <StatTile value={`${profileData?.jobs_completed || 0} Jobs`} label="Completed" />
+            <StatTile value={`★ ${(profileData?.base_rating || 0).toFixed(1)}`} label="Rating" />
+            <StatTile value="98%" label="On Time" last />
           </View>
         </View>
 
@@ -79,15 +146,23 @@ export const HzProviderProfile: React.FC = () => {
         <View style={styles.section}>
           <SectionHeader title="Services Offered" />
           <View style={styles.chipsWrap}>
-            {["AC Repairing", "AC General Service", "AC Installation"].map(s => <Chip key={s} label={s} variant="amber" />)}
+            {services.length > 0 ? (
+              services.map(s => <Chip key={s} label={s} variant="amber" />)
+            ) : (
+              <Chip label="General Handyman Services" variant="amber" />
+            )}
           </View>
         </View>
 
         {/* Areas */}
         <View style={styles.section}>
-          <SectionHeader title="Service Areas" />
+          <SectionHeader title="Service Sectors" />
           <View style={styles.chipsWrap}>
-            {["G-10", "G-11", "G-13", "G-14", "F-7"].map(a => <Chip key={a} label={a} variant="outlined" />)}
+            {sectors.length > 0 ? (
+              sectors.map(a => <Chip key={a} label={a} variant="outlined" />)
+            ) : (
+              <Chip label="G-13 Coverage" variant="outlined" />
+            )}
           </View>
         </View>
 
@@ -125,7 +200,7 @@ export const HzProviderProfile: React.FC = () => {
         </View>
 
         {/* Sign Out */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={() => router.replace("/role-select")}>
+        <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
