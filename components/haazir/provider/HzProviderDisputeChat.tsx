@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Keyboard, Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
@@ -72,13 +72,30 @@ const ContactCard: React.FC = () => {
   );
 };
 
+const MIN_INPUT_HEIGHT = 40;
+const MAX_INPUT_HEIGHT = 120;
+
 export const HzProviderDisputeChat: React.FC = () => {
   const router = useRouter();
   const [message, setMessage] = useState("");
+  const [inputHeight, setInputHeight] = useState(MIN_INPUT_HEIGHT);
+  const [keyboardPad, setKeyboardPad] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
 
+  useEffect(() => {
+    const show = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => setKeyboardPad(e.endCoordinates.height)
+    );
+    const hide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKeyboardPad(0)
+    );
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <StatusBar style="dark" backgroundColor={Colors.bg} />
       
       {/* Top Bar */}
@@ -98,12 +115,14 @@ export const HzProviderDisputeChat: React.FC = () => {
         <Text style={styles.contextSub}>Booking #1042</Text>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "android" ? "padding" : "height"}>
+      {/* Content — paddingBottom drives keyboard avoidance manually */}
+      <View style={{ flex: 1, paddingBottom: keyboardPad }}>
         <ScrollView
           ref={scrollRef}
           style={styles.scroll}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
           <AgentBubble text="Zain bhai, kya masla hua? Main aapki complaint properly file karta hoon. Neeche se issue select karein." />
@@ -115,17 +134,25 @@ export const HzProviderDisputeChat: React.FC = () => {
 
         <View style={styles.inputBar}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { height: inputHeight }]}
             placeholder="Add more detail..."
             placeholderTextColor={Colors.muted}
             value={message}
             onChangeText={setMessage}
+            multiline
+            maxLength={1000}
+            blurOnSubmit={false}
+            textAlignVertical="top"
+            onContentSizeChange={(e) => {
+              const h = e.nativeEvent.contentSize.height;
+              setInputHeight(Math.min(Math.max(h, MIN_INPUT_HEIGHT), MAX_INPUT_HEIGHT));
+            }}
           />
           <TouchableOpacity style={styles.sendBtn} onPress={() => router.replace("/(provider)/dispute-status")} activeOpacity={0.8}>
             <Ionicons name="arrow-up" size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -159,7 +186,24 @@ const styles = StyleSheet.create({
   optionBtnText: { fontSize: 14, fontWeight: "500", color: Colors.primary },
   optionBtnTextSelected: { color: Colors.white },
 
-  inputBar: { height: 56, backgroundColor: Colors.white, borderTopWidth: 1, borderTopColor: Colors.divider, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 10 },
-  input: { flex: 1, height: 40, fontSize: 15, color: Colors.primary },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
+  inputBar: {
+    minHeight: 56,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.divider,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.primary,
+    maxHeight: 120,
+    paddingTop: Platform.OS === "ios" ? 8 : 4,
+    paddingBottom: Platform.OS === "ios" ? 8 : 4,
+  },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center", flexShrink: 0 },
 });

@@ -153,10 +153,14 @@ const ReinitiateCard: React.FC = () => {
 };
 
 /* ─── Main screen ─── */
+const MIN_INPUT_HEIGHT = 40;   // 1 line
+const MAX_INPUT_HEIGHT = 120;  // ~5 lines
+
 export const HzChatScreen: React.FC = () => {
   const router = useRouter();
   const [thinkingOn, setThinkingOn] = useState(false);
   const [message, setMessage] = useState("");
+  const [inputHeight, setInputHeight] = useState(MIN_INPUT_HEIGHT);
   const scrollRef = useRef<ScrollView>(null);
 
   return (
@@ -190,14 +194,18 @@ export const HzChatScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "android" ? "padding" : "height"}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
         {/* Chat scroll area */}
         <ScrollView
           ref={scrollRef}
           style={styles.chatScroll}
           contentContainerStyle={styles.chatContent}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+          keyboardShouldPersistTaps="handled"
         >
           <AgentBubble text="Assalam o Alaikum! Main Haazir hoon. Aapko kaunsi service chahiye? Bas batayein — Urdu mein, English mein, ya jis tarah chaahein." time="2:14 PM" />
           <ConsumerBubble text="AC bilkul kaam nahi kar raha, kal subah G-13 mein technician chahiye" time="2:15 PM" />
@@ -216,16 +224,24 @@ export const HzChatScreen: React.FC = () => {
             value={message}
             onChangeText={setMessage}
             placeholderTextColor={Colors.muted}
-            style={styles.input}
+            style={[styles.input, { height: inputHeight }]}
+            multiline
+            maxLength={1000}
+            blurOnSubmit={false}
+            textAlignVertical="top"
+            onContentSizeChange={(e) => {
+              const h = e.nativeEvent.contentSize.height;
+              setInputHeight(Math.min(Math.max(h, MIN_INPUT_HEIGHT), MAX_INPUT_HEIGHT));
+            }}
           />
           <TouchableOpacity activeOpacity={0.8} style={styles.sendBtn}>
             <Ionicons name="arrow-up" size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>
-
-        {/* Bottom Navigation */}
-        <HzBottomNav role="consumer" activeTab="chat" />
       </KeyboardAvoidingView>
+
+      {/* Bottom Navigation — outside KeyboardAvoidingView so it stays pinned */}
+      <HzBottomNav role="consumer" activeTab="chat" />
     </SafeAreaView>
   );
 };
@@ -295,7 +311,24 @@ const styles = StyleSheet.create({
   reinitiateCancelText: { fontSize: 13, color: Colors.muted },
 
   // Input bar
-  inputBar: { height: 56, backgroundColor: Colors.white, borderTopWidth: 1, borderTopColor: Colors.divider, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 12 },
-  input: { flex: 1, fontSize: 15, color: Colors.primary, height: 40 },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
+  inputBar: {
+    minHeight: 56,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.divider,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.primary,
+    maxHeight: 120,
+    paddingTop: Platform.OS === "ios" ? 8 : 4,
+    paddingBottom: Platform.OS === "ios" ? 8 : 4,
+  },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center", flexShrink: 0 },
 });

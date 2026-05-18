@@ -17,6 +17,10 @@ export default function ConsumerLayout() {
       <Stack.Screen name="favourites" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="chat" />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="time-preference" />
+      <Stack.Screen name="my-disputes" />
+      <Stack.Screen name="about" />
     </Stack>
   );
 }

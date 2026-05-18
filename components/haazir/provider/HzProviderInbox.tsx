@@ -77,16 +77,43 @@ const SectionHeader: React.FC<{ title: string; badge?: number }> = ({ title, bad
   </View>
 );
 
-const NotifRow: React.FC<{ icon: string; iconColor: string; text: string; time: string; unread?: boolean; last?: boolean }> = ({ icon, iconColor, text, time, unread, last }) => (
-  <View style={[styles.notifRow, unread && { backgroundColor: Colors.accentLight }, last && { borderBottomWidth: 0 }]}>
+const NotifRow: React.FC<{ icon: string; iconColor: string; text: string; time: string; unread?: boolean; last?: boolean; onPress?: () => void }> = ({ icon, iconColor, text, time, unread, last, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    activeOpacity={0.75}
+    style={[styles.notifRow, unread && { backgroundColor: Colors.accentLight }, last && { borderBottomWidth: 0 }]}
+  >
     <Ionicons name={icon as any} size={20} color={iconColor} />
-    <Text style={[styles.notifText, unread && { color: Colors.primary }]}>{text}</Text>
-    <Text style={styles.notifTime}>{time}</Text>
-  </View>
+    <Text style={[styles.notifText, unread && { color: Colors.primary, fontWeight: "500" }]}>{text}</Text>
+    <View style={{ alignItems: "flex-end", gap: 4 }}>
+      <Text style={styles.notifTime}>{time}</Text>
+      {unread && <View style={styles.unreadDot} />}
+    </View>
+  </TouchableOpacity>
 );
+
+interface Notif {
+  id: string;
+  icon: string;
+  iconColor: string;
+  text: string;
+  time: string;
+  unread: boolean;
+}
+
+const INITIAL_NOTIFS: Notif[] = [
+  { id: "1", icon: "notifications",        iconColor: Colors.accent, text: "Consumer Sana Malik left you a 4.8 rating.",                             time: "2h ago",   unread: true  },
+  { id: "2", icon: "information-circle-outline", iconColor: Colors.muted,  text: "Your availability for Sunday has been updated.",                    time: "Yesterday", unread: false },
+  { id: "3", icon: "bar-chart-outline",    iconColor: Colors.muted,  text: "Haazir Advisor: High AC Repair demand in G-10 this weekend.",          time: "2d ago",   unread: false },
+];
 
 export const HzProviderInbox: React.FC = () => {
   const router = useRouter();
+  const [notifs, setNotifs] = useState<Notif[]>(INITIAL_NOTIFS);
+
+  const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
+  const markRead = (id: string) => setNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+  const unreadCount = notifs.filter(n => n.unread).length;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -96,8 +123,8 @@ export const HzProviderInbox: React.FC = () => {
       <View style={styles.topBar}>
         <View style={{ width: 80 }} />
         <Text style={styles.title} pointerEvents="none">Inbox</Text>
-        <TouchableOpacity style={styles.markReadBtn}>
-          <Text style={styles.markReadText}>Mark all read</Text>
+        <TouchableOpacity style={styles.markReadBtn} onPress={markAllRead} disabled={unreadCount === 0}>
+          <Text style={[styles.markReadText, unreadCount === 0 && { color: Colors.muted }]}>Mark all read</Text>
         </TouchableOpacity>
       </View>
 
@@ -137,9 +164,18 @@ export const HzProviderInbox: React.FC = () => {
           <SectionHeader title="Other Notifications" />
         </View>
         <View style={styles.notifsList}>
-          <NotifRow icon="notifications" iconColor={Colors.accent} text="Consumer Sana Malik left you a 4.8 rating." time="2h ago" unread />
-          <NotifRow icon="information-circle-outline" iconColor={Colors.muted} text="Your availability for Sunday has been updated." time="Yesterday" />
-          <NotifRow icon="bar-chart-outline" iconColor={Colors.muted} text="Haazir Advisor: High AC Repair demand in G-10 this weekend." time="2d ago" last />
+          {notifs.map((n, i) => (
+            <NotifRow
+              key={n.id}
+              icon={n.icon}
+              iconColor={n.iconColor}
+              text={n.text}
+              time={n.time}
+              unread={n.unread}
+              last={i === notifs.length - 1}
+              onPress={() => markRead(n.id)}
+            />
+          ))}
         </View>
 
       </ScrollView>
@@ -189,4 +225,5 @@ const styles = StyleSheet.create({
   notifRow: { minHeight: 56, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.divider, paddingHorizontal: 16, paddingVertical: 8 },
   notifText: { flex: 1, fontSize: 14, color: Colors.muted },
   notifTime: { fontSize: 11, color: Colors.muted },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent },
 });

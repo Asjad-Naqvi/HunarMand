@@ -1,5 +1,5 @@
-import { HzHomeScreen } from "../../components/haazir/consumer/HzHomeScreen";
+import { Redirect } from "expo-router";
 
 export default function HomeRoute() {
-  return <HzHomeScreen />;
+  return <Redirect href="/(consumer)/chat" />;
 }

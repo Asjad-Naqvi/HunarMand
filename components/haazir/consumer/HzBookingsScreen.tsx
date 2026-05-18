@@ -58,6 +58,58 @@ const BookingCard: React.FC<BookingCardProps> = ({ service, status, extraPill, p
 export const HzBookingsScreen: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<FilterChip>("all");
 
+  const ALL_BOOKINGS = [
+    {
+      id: "1",
+      status: "upcoming" as FilterChip,
+      service: "AC Repairing",
+      statusPill: { label: "Upcoming", bg: Colors.accent },
+      provider: "Ali Hassan",
+      datetime: "Sat 18 May · 9:00 AM",
+      location: "G-13, Islamabad",
+      amount: "PKR 2,873",
+      showViewDetails: true,
+    },
+    {
+      id: "2",
+      status: "completed" as FilterChip,
+      service: "Sofa Cleaning",
+      statusPill: { label: "Completed", bg: Colors.success },
+      provider: "Tariq Mehmood",
+      datetime: "Tue 7 May · 11:00 AM",
+      location: "F-7, Islamabad",
+      amount: "PKR 1,500",
+      showViewDetails: true,
+    },
+    {
+      id: "3",
+      status: "completed" as FilterChip,
+      service: "Plumber",
+      statusPill: { label: "Completed", bg: Colors.success },
+      extraPill: { label: "Dispute Filed", bg: Colors.warning },
+      provider: "Bilal Chaudhry",
+      datetime: "Mon 29 Apr · 2:00 PM",
+      location: "G-10, Islamabad",
+      amount: "PKR 800",
+      showViewDetails: false,
+    },
+    {
+      id: "4",
+      status: "cancelled" as FilterChip,
+      service: "Electrician",
+      statusPill: { label: "Cancelled", bg: Colors.muted },
+      cancellationReason: "Provider didn't respond",
+      datetime: "Sat 20 Apr · 10:00 AM",
+      location: "G-11, Islamabad",
+      amount: "PKR —",
+      showViewDetails: false,
+    },
+  ];
+
+  const filteredBookings = activeFilter === "all"
+    ? ALL_BOOKINGS
+    : ALL_BOOKINGS.filter(b => b.status === activeFilter);
+
   const FILTERS: { id: FilterChip; label: string }[] = [
     { id: "all",       label: "All" },
     { id: "completed", label: "Completed" },
@@ -71,11 +123,7 @@ export const HzBookingsScreen: React.FC = () => {
       
       {/* Top Bar */}
       <View style={styles.topBar}>
-        <View style={{ width: 48 }} />
-        <Text style={styles.title} pointerEvents="none">My Bookings</Text>
-        <TouchableOpacity style={styles.iconBtn}>
-          <Ionicons name="options-outline" size={24} color={Colors.primary} />
-        </TouchableOpacity>
+        <Text style={styles.title}>Bookings</Text>
       </View>
 
       {/* Filter Chips */}
@@ -94,41 +142,27 @@ export const HzBookingsScreen: React.FC = () => {
 
       {/* List */}
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <BookingCard
-          service="AC Repairing"
-          status={{ label: "Upcoming", bg: Colors.accent }}
-          provider="Ali Hassan"
-          datetime="Sat 18 May · 9:00 AM"
-          location="G-13, Islamabad"
-          amount="PKR 2,873"
-        />
-        <BookingCard
-          service="Sofa Cleaning"
-          status={{ label: "Completed", bg: Colors.success }}
-          provider="Tariq Mehmood"
-          datetime="Tue 7 May · 11:00 AM"
-          location="F-7, Islamabad"
-          amount="PKR 1,500"
-        />
-        <BookingCard
-          service="Plumber"
-          status={{ label: "Completed", bg: Colors.success }}
-          extraPill={{ label: "Dispute Filed", bg: Colors.warning }}
-          provider="Bilal Chaudhry"
-          datetime="Mon 29 Apr · 2:00 PM"
-          location="G-10, Islamabad"
-          amount="PKR 800"
-          showViewDetails={false}
-        />
-        <BookingCard
-          service="Electrician"
-          status={{ label: "Cancelled", bg: Colors.muted }}
-          cancellationReason="Provider didn't respond"
-          datetime="Sat 20 Apr · 10:00 AM"
-          location="G-11, Islamabad"
-          amount="PKR —"
-          showViewDetails={false}
-        />
+        {filteredBookings.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="calendar-outline" size={40} color={Colors.border} />
+            <Text style={styles.emptyText}>No {activeFilter} bookings found.</Text>
+          </View>
+        ) : (
+          filteredBookings.map(b => (
+            <BookingCard
+              key={b.id}
+              service={b.service}
+              status={b.statusPill}
+              extraPill={b.extraPill}
+              provider={b.provider}
+              datetime={b.datetime}
+              location={b.location}
+              amount={b.amount}
+              cancellationReason={b.cancellationReason}
+              showViewDetails={b.showViewDetails}
+            />
+          ))
+        )}
       </ScrollView>
 
       <HzBottomNav role="consumer" activeTab="bookings" />
@@ -138,15 +172,17 @@ export const HzBookingsScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.bg },
-  topBar: { height: 56, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.divider, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
-  iconBtn: { width: 48, height: 48, alignItems: "center", justifyContent: "center" },
-  title: { position: "absolute", left: 0, right: 0, textAlign: "center", fontSize: 17, fontWeight: "600", color: Colors.primary, zIndex: -1 },
+  topBar: { height: 56, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.divider, justifyContent: "center", alignItems: "center" },
+  title: { fontSize: 17, fontWeight: "600", color: Colors.primary },
 
   filterStrip: { height: 48, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.divider },
   filterContent: { paddingHorizontal: 16, alignItems: "center", gap: 8 },
 
   scroll: { flex: 1 },
-  content: { padding: 16, gap: 12 },
+  content: { padding: 16, gap: 12, paddingBottom: 32 },
+
+  emptyState: { paddingVertical: 48, alignItems: "center", gap: 8 },
+  emptyText: { fontSize: 14, color: Colors.muted, textAlign: "center" },
 
   card: { backgroundColor: Colors.white, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 16, gap: 4 },
   cardHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 },

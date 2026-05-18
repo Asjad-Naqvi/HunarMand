@@ -43,11 +43,10 @@ export const HzHomeScreen: React.FC = () => {
               <Text style={styles.locationSub}>Your location</Text>
               <View style={styles.locationValueRow}>
                 <Text style={styles.locationValue}>G-13, Islamabad</Text>
-                <Ionicons name="chevron-down" size={14} color={Colors.muted} />
               </View>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.bellBtn}>
+          <TouchableOpacity style={styles.bellBtn} onPress={() => router.push("/(consumer)/notifications" as any)}>
             <Ionicons name="notifications-outline" size={20} color={Colors.primary} />
           </TouchableOpacity>
         </View>

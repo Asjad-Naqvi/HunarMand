@@ -109,7 +109,7 @@ export const HzProviderJobRequest: React.FC = () => {
       </ScrollView>
 
       <View style={styles.actionBar}>
-        <TouchableOpacity style={styles.acceptBtn} onPress={() => router.push("/dashboard")}>
+        <TouchableOpacity style={styles.acceptBtn} onPress={() => router.replace("/(provider)/active-job")}>
           <Text style={styles.acceptBtnText}>Accept Job</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.declineBtn} onPress={() => router.back()}>

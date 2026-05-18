@@ -7,6 +7,19 @@ import { useRouter } from "expo-router";
 import { HzBottomNav } from "../../haazir/shared/HzBottomNav";
 import { Colors, Shadows } from "../../constants/theme";
 
+const ActiveJobBanner: React.FC<{ onPress: () => void }> = ({ onPress }) => (
+  <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.activeJobBanner}>
+    <View style={styles.activeJobLeft}>
+      <View style={styles.activeJobDot} />
+      <View>
+        <Text style={styles.activeJobLabel}>Active Job In Progress</Text>
+        <Text style={styles.activeJobSub}>AC Repairing · En Route · Sana M.</Text>
+      </View>
+    </View>
+    <Text style={styles.activeJobCta}>Open →</Text>
+  </TouchableOpacity>
+);
+
 const AvailabilityToggle: React.FC = () => {
   const [available, setAvailable] = useState(true);
   return (
@@ -115,6 +128,8 @@ export const HzProviderDashboard: React.FC = () => {
         </TouchableOpacity>
       </View>
 
+      <ActiveJobBanner onPress={() => router.push("/(provider)/active-job")} />
+
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         <AvailabilityToggle />
@@ -122,7 +137,7 @@ export const HzProviderDashboard: React.FC = () => {
         <View style={styles.section}><StatsCard /></View>
 
         <View style={styles.section}>
-          <SectionHeader title="Haazir Advisor" action="See all" />
+          <SectionHeader title="Haazir Advisor" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.advisorScroll}>
             <AdvisorCard emoji="💡" type="Opportunity" typeColor={Colors.warning} body="High demand for AC Repair in G-10 this weekend" linkLabel="Expand service areas" />
             <AdvisorCard emoji="⭐" type="Rating" typeColor={Colors.warning} body="Your punctuality score dropped to 88%. Aim to arrive 10 min early." />
@@ -131,7 +146,7 @@ export const HzProviderDashboard: React.FC = () => {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="Upcoming Jobs" action="View all" />
+          <SectionHeader title="Upcoming Jobs" />
           <View style={styles.jobList}>
             <JobCard service="AC Repairing" timePill="Tomorrow · 9 AM" location="G-13 · House 12, Street 4" estimate="Est. PKR 2,873" />
             <JobCard service="Sofa Cleaning" timePill="Mon 20 May · 11 AM" location="F-7 · Apartment 3B" estimate="Est. PKR 1,500" />
@@ -163,6 +178,13 @@ const styles = StyleSheet.create({
   bellBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center", position: "relative" },
   badge: { position: "absolute", top: 4, right: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
   badgeText: { fontSize: 10, fontWeight: "600", color: Colors.white },
+
+  activeJobBanner: { margin: 12, marginBottom: 0, borderRadius: 12, backgroundColor: Colors.accentLight, borderWidth: 1.5, borderColor: Colors.accent, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 10 },
+  activeJobLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  activeJobDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.accent },
+  activeJobLabel: { fontSize: 13, fontWeight: "600", color: Colors.accent },
+  activeJobSub: { fontSize: 12, color: Colors.primary, marginTop: 1 },
+  activeJobCta: { fontSize: 13, fontWeight: "600", color: Colors.accent },
 
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 32 },

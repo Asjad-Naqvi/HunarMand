@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -9,13 +9,16 @@ import { Colors, Shadows } from "../../constants/theme";
 type StepState = "done" | "active" | "pending";
 interface Step { label: string; state: StepState; }
 
-const STEPS: Step[] = [
-  { label: "Confirmed",   state: "done"    },
-  { label: "En Route",    state: "active"  },
-  { label: "Arrived",     state: "pending" },
-  { label: "In Progress", state: "pending" },
-  { label: "Completed",   state: "pending" },
+// Step index progression: 0=Confirmed, 1=EnRoute, 2=Arrived, 3=InProgress, 4=Completed
+const buildSteps = (activeIndex: number): Step[] => [
+  { label: "Confirmed",   state: activeIndex > 0 ? "done" : activeIndex === 0 ? "active" : "pending" },
+  { label: "En Route",    state: activeIndex > 1 ? "done" : activeIndex === 1 ? "active" : "pending" },
+  { label: "Arrived",     state: activeIndex > 2 ? "done" : activeIndex === 2 ? "active" : "pending" },
+  { label: "In Progress", state: activeIndex > 3 ? "done" : activeIndex === 3 ? "active" : "pending" },
+  { label: "Completed",   state: activeIndex > 4 ? "done" : activeIndex === 4 ? "active" : "pending" },
 ];
+
+const STATUS_LABELS = ["En Route to Consumer", "En Route to Consumer", "Arrived at Location", "Job In Progress", "Job Completed"];
 
 const StepNode: React.FC<{ step: Step }> = ({ step }) => {
   const color = step.state === "done" ? Colors.success : step.state === "active" ? Colors.accent : Colors.border;
@@ -27,19 +30,19 @@ const StepNode: React.FC<{ step: Step }> = ({ step }) => {
   );
 };
 
-const ProgressBanner: React.FC = () => (
+const ProgressBanner: React.FC<{ steps: Step[]; activeIndex: number }> = ({ steps, activeIndex }) => (
   <View style={styles.progressBanner}>
     <View style={styles.stepsRow}>
-      {STEPS.map((step, i) => (
+      {steps.map((step, i) => (
         <React.Fragment key={step.label}>
           <StepNode step={step} />
-          {i < STEPS.length - 1 && (
-            <View style={[styles.stepLine, { backgroundColor: STEPS[i].state === "done" ? Colors.success : Colors.border }]} />
+          {i < steps.length - 1 && (
+            <View style={[styles.stepLine, { backgroundColor: steps[i].state === "done" ? Colors.success : Colors.border }]} />
           )}
         </React.Fragment>
       ))}
     </View>
-    <Text style={styles.progressText}>Currently: En Route to Consumer</Text>
+    <Text style={styles.progressText}>Currently: {STATUS_LABELS[activeIndex]}</Text>
   </View>
 );
 
@@ -62,6 +65,16 @@ const StatusButton: React.FC<{ label: string; variant: "primary" | "disabled" | 
 
 export const HzProviderActiveJob: React.FC = () => {
   const router = useRouter();
+  // activeIndex: 1=EnRoute(start), 2=Arrived, 3=InProgress, 4=Completed
+  const [activeIndex, setActiveIndex] = useState(1);
+  const steps = buildSteps(activeIndex);
+
+  const handleArrived = () => setActiveIndex(2);
+  const handleInProgress = () => setActiveIndex(3);
+  const handleCompleted = () => {
+    setActiveIndex(4);
+    setTimeout(() => router.replace("/(provider)/rate-consumer"), 800);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -74,7 +87,7 @@ export const HzProviderActiveJob: React.FC = () => {
         <Text style={styles.title} pointerEvents="none">Active Job</Text>
       </View>
 
-      <ProgressBanner />
+      <ProgressBanner steps={steps} activeIndex={activeIndex} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
@@ -110,9 +123,23 @@ export const HzProviderActiveJob: React.FC = () => {
         <View style={[styles.card, Shadows.card]}>
           <Text style={styles.cardTitle}>Update Job Status</Text>
           <View style={styles.btnGroup}>
-            <StatusButton label="Mark as Arrived" variant="primary" />
-            <StatusButton label="Mark as Completed" variant="disabled" />
-            <StatusButton label="Report Issue" variant="secondary" />
+            {activeIndex === 1 && (
+              <StatusButton label="Mark as Arrived" variant="primary" onPress={handleArrived} />
+            )}
+            {activeIndex === 2 && (
+              <StatusButton label="Mark as In Progress" variant="primary" onPress={handleInProgress} />
+            )}
+            {activeIndex === 3 && (
+              <StatusButton label="Mark as Completed" variant="primary" onPress={handleCompleted} />
+            )}
+            {activeIndex === 4 && (
+              <StatusButton label="Job Completed ✓" variant="disabled" />
+            )}
+            <StatusButton
+              label="Report Issue"
+              variant="secondary"
+              onPress={() => router.push("/(provider)/dispute-chat")}
+            />
           </View>
         </View>
 

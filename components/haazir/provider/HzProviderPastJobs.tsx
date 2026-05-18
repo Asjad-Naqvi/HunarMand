@@ -60,13 +60,7 @@ export const HzProviderPastJobs: React.FC = () => {
       <StatusBar style="dark" backgroundColor={Colors.bg} />
       
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.primary} />
-        </TouchableOpacity>
-        <Text style={styles.title} pointerEvents="none">Past Jobs</Text>
-        <TouchableOpacity style={styles.iconBtn}>
-          <Ionicons name="swap-vertical" size={24} color={Colors.primary} />
-        </TouchableOpacity>
+        <Text style={styles.title}>Past Jobs</Text>
       </View>
 
       <View style={styles.summaryStrip}>
@@ -114,16 +108,15 @@ export const HzProviderPastJobs: React.FC = () => {
         />
       </ScrollView>
 
-      <HzBottomNav role="provider" activeTab="dashboard" />
+      <HzBottomNav role="provider" activeTab="past-jobs" />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.bg },
-  topBar: { height: 56, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.divider, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
-  iconBtn: { width: 48, height: 48, alignItems: "center", justifyContent: "center" },
-  title: { position: "absolute", left: 0, right: 0, textAlign: "center", fontSize: 17, fontWeight: "600", color: Colors.primary, zIndex: -1 },
+  topBar: { height: 56, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.divider, justifyContent: "center", alignItems: "center" },
+  title: { fontSize: 17, fontWeight: "600", color: Colors.primary },
 
   summaryStrip: { backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.divider, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6 },
   summaryRow: { flexDirection: "row", alignItems: "stretch" },

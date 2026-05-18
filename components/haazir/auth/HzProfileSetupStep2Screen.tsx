@@ -10,6 +10,7 @@ import { Colors, Radius, Shadows } from "../../constants/theme";
 export const HzProfileSetupStep2Screen: React.FC = () => {
   const router = useRouter();
   const [label, setLabel] = useState("");
+  const [address, setAddress] = useState("");
   const [pinDropped, setPinDropped] = useState(false);
 
   return (
@@ -51,6 +52,18 @@ export const HzProfileSetupStep2Screen: React.FC = () => {
           />
         </View>
 
+        {/* Address text input */}
+        <View style={styles.fieldRow}>
+          <Ionicons name="map-outline" size={20} color={Colors.muted} />
+          <TextInput
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Street address (e.g. G-13, Street 4, House 12)"
+            placeholderTextColor={Colors.muted}
+            style={styles.input}
+          />
+        </View>
+
         {/* Map placeholder */}
         <TouchableOpacity
           onPress={() => setPinDropped(true)}
@@ -69,7 +82,9 @@ export const HzProfileSetupStep2Screen: React.FC = () => {
             color={pinDropped ? Colors.accent : Colors.muted} 
           />
           <Text style={styles.mapText}>
-            {pinDropped ? "Pin dropped — G-13, Islamabad" : "Tap to drop a pin on the map"}
+            {pinDropped
+              ? `Pin dropped — ${address || "G-13, Islamabad"}`
+              : "Tap to drop a pin on the map"}
           </Text>
         </TouchableOpacity>
 

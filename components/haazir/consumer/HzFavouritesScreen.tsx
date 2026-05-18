@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { HzBottomNav } from "../../haazir/shared/HzBottomNav";
 import { Colors, Shadows } from "../../constants/theme";
 
@@ -15,6 +16,7 @@ interface FavouriteCardProps {
 }
 
 const FavouriteCard: React.FC<FavouriteCardProps> = ({ name, service, area, rating, reviewCount }) => {
+  const router = useRouter();
   const [saved, setSaved] = useState(true);
 
   return (
@@ -37,10 +39,16 @@ const FavouriteCard: React.FC<FavouriteCardProps> = ({ name, service, area, rati
       <View style={styles.divider} />
 
       <View style={styles.actionRow}>
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: Colors.accent, borderWidth: 0 }]}>
+        <TouchableOpacity
+          style={[styles.actionBtn, { backgroundColor: Colors.accent, borderWidth: 0 }]}
+          onPress={() => router.push("/(consumer)/booking-confirmation" as any)}
+        >
           <Text style={[styles.actionBtnText, { color: Colors.white }]}>Book Again</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push("/(consumer)/provider-profile" as any)}
+        >
           <Text style={styles.actionBtnText}>View Profile</Text>
         </TouchableOpacity>
       </View>
