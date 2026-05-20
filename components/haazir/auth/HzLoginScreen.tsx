@@ -43,22 +43,30 @@ export const HzLoginScreen: React.FC = () => {
       let loginSuccess = false;
 
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: authEmail,
+        // 1. Try logging in using the exact phone number (with +)
+        let { error } = await supabase.auth.signInWithPassword({
+          phone: `+${phoneClean}`,
           password,
         });
 
         if (!error) {
           loginSuccess = true;
         } else {
-          // Try with the actual email in case they registered with one
-          const { data: data2, error: error2 } = await supabase.auth.signInWithPassword({
-            email: phone.trim(),
+          // 2. Try with the generated email format
+          const { error: err2 } = await supabase.auth.signInWithPassword({
+            email: authEmail,
             password,
           });
 
-          if (!error2) {
+          if (!err2) {
             loginSuccess = true;
+          } else {
+            // 3. Try with the raw input (in case they typed a real email)
+            const { error: err3 } = await supabase.auth.signInWithPassword({
+              email: phone.trim(),
+              password,
+            });
+            if (!err3) loginSuccess = true;
           }
         }
       } catch (err: any) {
@@ -74,7 +82,7 @@ export const HzLoginScreen: React.FC = () => {
       const { data: dbUser, error: dbErr } = await supabase
         .from("users")
         .select("*, provider_profiles(user_id)")
-        .eq("phone", phoneClean)
+        .or(`phone.eq.${phoneClean},phone.eq.+${phoneClean}`)
         .single();
 
       if (dbUser && !dbErr) {

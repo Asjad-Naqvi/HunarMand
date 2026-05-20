@@ -17,6 +17,7 @@ import { useRouter } from "expo-router";
 import Animated, { useAnimatedStyle, withTiming, useSharedValue } from "react-native-reanimated";
 import { Colors, Radius, Shadows } from "../../constants/theme";
 import { useAuth } from "../../../lib/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ChatMessage {
   id: string;
@@ -26,7 +27,7 @@ interface ChatMessage {
   reasoning?: string;
 }
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || "http://127.0.0.1:5000";
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || "http://192.168.1.16:5000";
 
 /* ─── Thinking Block ─── */
 const ThinkingBlock: React.FC<{ reasoning: string }> = ({ reasoning }) => {
@@ -96,6 +97,74 @@ const ConsumerBubble: React.FC<{ text: string; time?: string }> = ({ text, time 
   </View>
 );
 
+/* ─── Assistant Message Parser Helper ─── */
+const parseAgentMessage = (aiResponseText: string) => {
+  let mainText = aiResponseText;
+  let reasoningText = "";
+
+  const thinkingMarkers = [
+    "Show Haazir's Thinking:",
+    "**Show Haazir's Thinking:**",
+    "Show Haazir's Thinking",
+  ];
+
+  let foundMarker = "";
+  for (const marker of thinkingMarkers) {
+    if (aiResponseText.includes(marker)) {
+      foundMarker = marker;
+      break;
+    }
+  }
+
+  if (foundMarker) {
+    const markerIndex = aiResponseText.indexOf(foundMarker);
+    const preText = aiResponseText.substring(0, markerIndex).trim();
+    const postText = aiResponseText.substring(markerIndex).trim();
+    
+    // Split postText into lines to separate list items from final paragraph
+    const lines = postText.split("\n");
+    const thinkingLines: string[] = [];
+    const replyLines: string[] = [];
+    
+    let collectingThinking = true;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      
+      if (i === 0) {
+        thinkingLines.push(line);
+        continue;
+      }
+      
+      if (collectingThinking) {
+        const isListPoint = /^\d+\./.test(trimmed) || trimmed.startsWith("-") || trimmed.startsWith("*") || trimmed === "";
+        if (!isListPoint && trimmed.length > 0 && !trimmed.toLowerCase().includes("thinking")) {
+          collectingThinking = false;
+          replyLines.push(line);
+        } else {
+          thinkingLines.push(line);
+        }
+      } else {
+        replyLines.push(line);
+      }
+    }
+    
+    reasoningText = thinkingLines.join("\n").trim();
+    const extractedReply = replyLines.join("\n").trim();
+    mainText = preText ? (preText + "\n\n" + extractedReply).trim() : extractedReply;
+  }
+
+  if (reasoningText && !mainText.trim()) {
+    mainText = "Onboarding registration process completed successfully!";
+  }
+
+  return {
+    text: mainText,
+    reasoning: reasoningText || undefined,
+  };
+};
+
 export const HzProviderOnboardingChat: React.FC = () => {
   const router = useRouter();
   const { user, refreshProfile, signInBypass } = useAuth();
@@ -105,31 +174,127 @@ export const HzProviderOnboardingChat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const scrollRef = useRef<ScrollView>(null);
 
-  // Clear agent session and initialize personalized welcome message on mount
-  useEffect(() => {
-    const clearSession = async () => {
-      try {
-        await fetch(`${BACKEND_URL}/api/agent/clear`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (err) {
-        console.warn("Failed to reset backend onboarding chat session:", err);
-      }
-    };
-    clearSession();
+  // ── Helper: save current message list to device storage ──────────────────
+  const persistMessages = async (msgs: ChatMessage[]) => {
+    try {
+      const storageKey = `haazir_chat_history_provider_${user?.id || "anonymous"}`;
+      await AsyncStorage.setItem(storageKey, JSON.stringify(msgs));
+    } catch (err) {
+      console.warn("Failed to persist onboarding chat history:", err);
+    }
+  };
 
-    const nameStr = user?.name ? ` ${user.name}` : "";
-    const phoneStr = user?.phone ? ` (${user.phone})` : "";
-    setMessages([
-      {
+  // ── Load history on mount: AsyncStorage first, then backend fallback ──────
+  useEffect(() => {
+    const initChat = async () => {
+      const nameStr = user?.name ? ` ${user.name}` : "";
+      const phoneStr = user?.phone ? ` (${user.phone})` : "";
+      const defaultWelcome: ChatMessage = {
         id: "welcome",
         sender: "agent",
         text: `Assalam o Alaikum${nameStr}! Haazir Partner network mein khush aamdeed. Main aapko register karne mein madad karunga.\n\nAapka phone number${phoneStr} hai. Mujhe aapka sector coverage (e.g. G-13), service (e.g. electrician) aur per-job rate batayein taake main aapki registration mukammal kar sakoon!`,
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      const storageKey = `haazir_chat_history_provider_${user?.id || "anonymous"}`;
+
+      // 1. Try to load instantly from device cache
+      try {
+        const cached = await AsyncStorage.getItem(storageKey);
+        if (cached) {
+          const cachedMsgs: ChatMessage[] = JSON.parse(cached);
+          if (cachedMsgs.length > 1) {
+            setMessages(cachedMsgs);
+            
+            // Check if cached chat already had onboarding completed
+            const successKeywords = ["successfully registered", "registration mukammal", "register ho gaye", "register kar diya", "Successfully registered"];
+            let foundConfirmation = false;
+            for (const msg of cachedMsgs) {
+              if (msg.sender === "agent") {
+                const lowerText = msg.text.toLowerCase();
+                if (successKeywords.some(kw => lowerText.includes(kw.toLowerCase()))) {
+                  foundConfirmation = true;
+                }
+              }
+            }
+            if (foundConfirmation) {
+              setOnboardingDone(true);
+            }
+
+            setTimeout(() => scrollRef.current?.scrollToEnd({ animated: false }), 100);
+            return; // We have local cache — no need to hit the backend
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to read cached onboarding history:", err);
       }
-    ]);
-  }, [user]);
+
+      // 2. Fetch from backend (first visit or backup restore)
+      try {
+        const userId = user?.id || "anonymous";
+        const response = await fetch(
+          `${BACKEND_URL}/api/agent/history?mode=provider&user_id=${userId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          const history = data.history || [];
+          
+          if (history.length > 1) {
+            const parsedMessages: ChatMessage[] = [defaultWelcome];
+            let idCounter = 1;
+            let foundConfirmation = false;
+            for (const item of history) {
+              // We skip system role messages and tool execution logs
+              if (item.role === "system" || item.role === "tool") continue;
+              
+              if (item.role === "user" && item.content) {
+                parsedMessages.push({
+                  id: `history_user_${idCounter++}`,
+                  sender: "user",
+                  text: item.content,
+                  time: "",
+                });
+              } else if (item.role === "assistant" && item.content) {
+                const parsed = parseAgentMessage(item.content);
+                parsedMessages.push({
+                  id: `history_agent_${idCounter++}`,
+                  sender: "agent",
+                  text: parsed.text,
+                  reasoning: parsed.reasoning,
+                  time: "",
+                });
+
+                // Check if this historic response confirmed successful registration
+                const successKeywords = ["successfully registered", "registration mukammal", "register ho gaye", "register kar diya", "Successfully registered"];
+                const lowerMain = parsed.text.toLowerCase();
+                if (successKeywords.some(kw => lowerMain.includes(kw.toLowerCase()))) {
+                  foundConfirmation = true;
+                }
+              }
+            }
+            setMessages(parsedMessages);
+            persistMessages(parsedMessages);
+            if (foundConfirmation) {
+              setOnboardingDone(true);
+            }
+            
+            // Auto scroll to bottom
+            setTimeout(() => {
+              scrollRef.current?.scrollToEnd({ animated: false });
+            }, 150);
+          } else {
+            setMessages([defaultWelcome]);
+          }
+        } else {
+          setMessages([defaultWelcome]);
+        }
+      } catch (err) {
+        console.warn("Failed to load onboarding history:", err);
+        setMessages([defaultWelcome]);
+      }
+    };
+    initChat();
+  }, [user?.id]);
 
   const handleSend = async () => {
     if (!message.trim()) return;
@@ -137,14 +302,18 @@ export const HzProviderOnboardingChat: React.FC = () => {
     const userMessageText = message;
     const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     
-    // Add user message to state
+    // Add user message to state and persist immediately
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: "user",
       text: userMessageText,
       time: timestamp,
     };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages(prev => {
+      const updated = [...prev, userMsg];
+      persistMessages(updated);
+      return updated;
+    });
     setMessage("");
     setLoading(true);
 
@@ -156,87 +325,32 @@ export const HzProviderOnboardingChat: React.FC = () => {
         body: JSON.stringify({
           message: userMessageText,
           mode: "provider",
-          user_id: user?.id || "test_provider_user",
+          user_id: user?.id || "anonymous",
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
         const aiResponseText = data.response || "No response received.";
-
-        // Premium parsing of the reasoning segment
-        let mainText = aiResponseText;
-        let reasoningText = "";
-
-        const thinkingMarkers = [
-          "Show Haazir's Thinking:",
-          "**Show Haazir's Thinking:**",
-          "Show Haazir's Thinking",
-        ];
-
-        let foundMarker = "";
-        for (const marker of thinkingMarkers) {
-          if (aiResponseText.includes(marker)) {
-            foundMarker = marker;
-            break;
-          }
-        }
-
-        if (foundMarker) {
-          const markerIndex = aiResponseText.indexOf(foundMarker);
-          const preText = aiResponseText.substring(0, markerIndex).trim();
-          const postText = aiResponseText.substring(markerIndex).trim();
-          
-          // Split postText into lines to separate list items from final paragraph
-          const lines = postText.split("\n");
-          const thinkingLines: string[] = [];
-          const replyLines: string[] = [];
-          
-          let collectingThinking = true;
-          
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const trimmed = line.trim();
-            
-            if (i === 0) {
-              thinkingLines.push(line);
-              continue;
-            }
-            
-            if (collectingThinking) {
-              const isListPoint = /^\d+\./.test(trimmed) || trimmed.startsWith("-") || trimmed.startsWith("*") || trimmed === "";
-              if (!isListPoint && trimmed.length > 0 && !trimmed.toLowerCase().includes("thinking")) {
-                collectingThinking = false;
-                replyLines.push(line);
-              } else {
-                thinkingLines.push(line);
-              }
-            } else {
-              replyLines.push(line);
-            }
-          }
-          
-          reasoningText = thinkingLines.join("\n").trim();
-          const extractedReply = replyLines.join("\n").trim();
-          mainText = preText ? (preText + "\n\n" + extractedReply).trim() : extractedReply;
-        }
-
-        if (reasoningText && !mainText.trim()) {
-          mainText = "Onboarding registration process completed successfully!";
-        }
+        const parsed = parseAgentMessage(aiResponseText);
 
         const agentMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
           sender: "agent",
-          text: mainText,
+          text: parsed.text,
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          reasoning: reasoningText || undefined,
+          reasoning: parsed.reasoning,
         };
-        setMessages(prev => [...prev, agentMsg]);
+        
+        setMessages(prev => {
+          const updated = [...prev, agentMsg];
+          persistMessages(updated);
+          return updated;
+        });
 
         // Detect if the agent confirmed successful registration
         const successKeywords = ["successfully registered", "registration mukammal", "register ho gaye", "register kar diya", "Successfully registered"];
-        const lowerMain = mainText.toLowerCase();
+        const lowerMain = parsed.text.toLowerCase();
         if (successKeywords.some(kw => lowerMain.includes(kw.toLowerCase()))) {
           setOnboardingDone(true);
           // Update the bypass session so RouteGuard won't redirect back to onboarding
@@ -251,7 +365,11 @@ export const HzProviderOnboardingChat: React.FC = () => {
           text: `Server validation error: ${response.status}`,
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         };
-        setMessages(prev => [...prev, agentMsg]);
+        setMessages(prev => {
+          const updated = [...prev, agentMsg];
+          persistMessages(updated);
+          return updated;
+        });
       }
     } catch (err) {
       const agentMsg: ChatMessage = {
@@ -260,7 +378,11 @@ export const HzProviderOnboardingChat: React.FC = () => {
         text: "Main network request complete nahi kar pa raha. Please check connection.",
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
-      setMessages(prev => [...prev, agentMsg]);
+      setMessages(prev => {
+        const updated = [...prev, agentMsg];
+        persistMessages(updated);
+        return updated;
+      });
     } finally {
       setLoading(false);
       // Auto scroll to bottom
@@ -307,7 +429,7 @@ export const HzProviderOnboardingChat: React.FC = () => {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ScrollView
@@ -342,8 +464,7 @@ export const HzProviderOnboardingChat: React.FC = () => {
             placeholderTextColor={Colors.muted}
             value={message}
             onChangeText={setMessage}
-            onSubmitEditing={handleSend}
-            returnKeyType="send"
+            multiline={true}
             editable={!loading}
           />
           <TouchableOpacity
@@ -396,7 +517,7 @@ const styles = StyleSheet.create({
     width: "80%",
     backgroundColor: Colors.accentLight,
     borderWidth: 1,
-    borderColor: Colors.accentBorder || Colors.border,
+    borderColor: Colors.accentVeryLight,
     borderRadius: 16,
     padding: 12,
     marginBottom: 8,
@@ -408,16 +529,29 @@ const styles = StyleSheet.create({
   thinkingMore: { fontSize: 11, fontWeight: "600", color: Colors.accent, marginTop: 4 },
 
   inputBar: {
-    height: 56,
+    minHeight: 56,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     backgroundColor: Colors.white,
     borderTopWidth: 1,
     borderTopColor: Colors.divider,
     paddingHorizontal: 12,
+    paddingVertical: 8,
     gap: 8,
   },
-  input: { flex: 1, height: 40, backgroundColor: Colors.bg, borderRadius: 20, paddingHorizontal: 16, fontSize: 15, color: Colors.primary },
+  input: {
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 120,
+    backgroundColor: Colors.bg,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    fontSize: 15,
+    color: Colors.primary,
+    textAlignVertical: "top",
+  },
   sendBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
   sendBtnDisabled: { backgroundColor: Colors.border },
 });

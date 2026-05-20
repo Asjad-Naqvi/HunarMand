@@ -33,30 +33,57 @@ class OddJobsAgent:
         self.instruction = instruction
         self.model = model
         self.tools = tools
-        
-        # Groq requires maintaining the chat history manually as a list
-        self.chat_history = [
-            {"role": "system", "content": instruction}
-        ]
-        
-    def clear_history(self):
+        self.user_histories = {}
+
+    def get_user_history(self, user_id=None):
+        if not user_id:
+            user_id = "anonymous"
+        if not hasattr(self, 'user_histories'):
+            self.user_histories = {}
+        if user_id not in self.user_histories:
+            self.user_histories[user_id] = [
+                {"role": "system", "content": self.instruction}
+            ]
+        return self.user_histories[user_id]
+
+    def clear_history(self, user_id=None):
         """Clears the chat history back to just the system instruction"""
-        self.chat_history = [
-            {"role": "system", "content": self.instruction}
-        ]
-    
+        if not hasattr(self, 'user_histories'):
+            self.user_histories = {}
+        if user_id:
+            self.user_histories[user_id] = [
+                {"role": "system", "content": self.instruction}
+            ]
+        else:
+            self.user_histories = {}
+            # Reset anonymous as well
+            self.user_histories["anonymous"] = [
+                {"role": "system", "content": self.instruction}
+            ]
+
+    @property
+    def chat_history(self):
+        return self.get_user_history("anonymous")
+
+    @chat_history.setter
+    def chat_history(self, val):
+        if not hasattr(self, 'user_histories'):
+            self.user_histories = {}
+        self.user_histories["anonymous"] = val
+
     def generate_response(self, message, user_id=None):
         """
         Generate AI response using Groq (with automatic tool execution)
         """
         self.active_user_id = user_id
-        self.chat_history.append({"role": "user", "content": message})
+        history = self.get_user_history(user_id)
+        history.append({"role": "user", "content": message})
         
         try:
             # 1. Send the message and tools to Groq
             kwargs = {
                 "model": self.model,
-                "messages": self.chat_history
+                "messages": history
             }
             if self.tools:
                 kwargs["tools"] = self.tools
@@ -68,7 +95,7 @@ class OddJobsAgent:
             
             # 2. Check if Groq decided to use a tool
             if response_message.tool_calls:
-                self.chat_history.append({
+                history.append({
                     "role": "assistant",
                     "content": response_message.content or "",
                     "tool_calls": [{
@@ -111,7 +138,7 @@ class OddJobsAgent:
                         function_response = {"error": "Unknown tool"}
                         
                     # Add the tool result back into the chat history
-                    self.chat_history.append({
+                    history.append({
                         "tool_call_id": tool_call.id,
                         "role": "tool",
                         "name": function_name,
@@ -121,15 +148,15 @@ class OddJobsAgent:
                 # 3. Send the tool results back to Groq so it can write a final response
                 second_response = client.chat.completions.create(
                     model=self.model,
-                    messages=self.chat_history
+                    messages=history
                 )
                 final_text = second_response.choices[0].message.content
-                self.chat_history.append({"role": "assistant", "content": final_text})
+                history.append({"role": "assistant", "content": final_text})
                 return final_text
                 
             else:
                 # Normal conversational response
-                self.chat_history.append({"role": "assistant", "content": response_message.content})
+                history.append({"role": "assistant", "content": response_message.content})
                 return response_message.content
                 
         except Exception as e:
@@ -205,6 +232,10 @@ def search_providers(service: str, location: str = "", time: str = "", budget: s
         "cleaner": "CS-01",
         "electrical": "HS-03",
         "electrician": "HS-03",
+        "electronics": "HS-03",
+        "electronic": "HS-03",
+        "appliances": "HS-03",
+        "appliance": "HS-03",
     }
     
     service_code = "HS-04"  # Default fallback
@@ -309,6 +340,43 @@ def search_providers(service: str, location: str = "", time: str = "", budget: s
             subtotal = base_rate + distance_surcharge + urgency_surcharge + complexity_surcharge + surge_surcharge
             final_price = max(subtotal - loyalty_discount, 0.0)
             
+            # Create services string for frontend display
+            service_names = []
+            service_name_map = {
+                "HS-04": "AC Repairing",
+                "HS-03": "Electrical Work",
+                "HS-01": "Plumbing",
+                "HS-02": "Carpentry",
+                "CS-01": "Carpet Cleaning",
+                "CS-02": "Sofa Cleaning",
+            }
+            for ps in p_services:
+                s_name = service_name_map.get(ps.get("service_code"), ps.get("service_code"))
+                if s_name and s_name not in service_names:
+                    service_names.append(s_name)
+            services_str = " · ".join(service_names)
+            if not services_str:
+                services_str = "General Home Service"
+
+            # Create sectors string for frontend display
+            sector_codes = [psec.get("sector_code") for psec in p_sectors if psec.get("sector_code")]
+            sectors_str = ", ".join(sector_codes)
+            if not sectors_str:
+                sectors_str = "Islamabad"
+
+            # Calculate on-time percentage based on punctuality rating
+            on_time_pct = int((punct_rating / 5.0) * 100)
+            on_time_str = f"On time {on_time_pct}%"
+
+            # Formulate friendly availability text
+            avail_status = p_profile.get("availability_status", "available")
+            if avail_status == "available":
+                avail_str = "Available tomorrow 9am - 5pm"
+            elif avail_status == "busy":
+                avail_str = "Busy until tomorrow 2pm"
+            else:
+                avail_str = "Scheduled appointments only"
+
             registered_providers.append({
                 "provider_id": u.get("id"),
                 "name": u.get("name"),
@@ -316,6 +384,10 @@ def search_providers(service: str, location: str = "", time: str = "", budget: s
                 "rating": base_rating,
                 "completed_jobs": jobs_completed,
                 "composite_score": round(composite_score, 1),
+                "services": services_str,
+                "sectors": sectors_str,
+                "on_time": on_time_str,
+                "availability": avail_str,
                 "pricing_breakdown": {
                     "base_rate": base_rate,
                     "distance_surcharge": distance_surcharge,
@@ -330,50 +402,81 @@ def search_providers(service: str, location: str = "", time: str = "", budget: s
         # Sort by composite score (highest first)
         registered_providers.sort(key=lambda x: x['composite_score'], reverse=True)
         
-        # Fallback to Google Maps Seeds if no registered provider matches
+        # Tag the first/best matched provider as Agent Recommended
+        if registered_providers:
+            registered_providers[0]["isRecommended"] = True
+            
+        # Always populate Google Maps Seeds to offer comparison lists in search-results screen
+        gmaps_seeds = [
+            {
+                "name": f"Islamabad {service.title()} Care",
+                "phone": "+92 51 889211",
+                "rating": 4.6,
+                "reviews_count": 38,
+                "address": f"{sector_code} Markaz, Islamabad",
+                "distance_km": 1.8,
+                "estimated_rate": 1500
+            },
+            {
+                "name": "Super Fix Techs",
+                "phone": "+92 333 981772",
+                "rating": 4.3,
+                "reviews_count": 21,
+                "address": f"{sector_code} Sector Street 4, Islamabad",
+                "distance_km": 2.4,
+                "estimated_rate": 1200
+            },
+            {
+                "name": f"{location} Repair Experts",
+                "phone": "+92 345 556621",
+                "rating": 4.7,
+                "reviews_count": 52,
+                "address": f"{sector_code} Sector Road, Islamabad",
+                "distance_km": 1.2,
+                "estimated_rate": 1800
+            },
+            {
+                "name": "Professional Home Care Pros",
+                "phone": "+92 51 445588",
+                "rating": 4.5,
+                "reviews_count": 29,
+                "address": "Blue Area, Islamabad",
+                "distance_km": 5.1,
+                "estimated_rate": 2000
+            },
+            {
+                "name": "Capital Repair Hub",
+                "phone": "+92 312 998855",
+                "rating": 4.2,
+                "reviews_count": 14,
+                "address": f"{sector_code} Markaz, Islamabad",
+                "distance_km": 2.0,
+                "estimated_rate": 1100
+            }
+        ]
         gmaps_providers = []
-        if not registered_providers:
-            gmaps_seeds = [
-                {
-                    "name": f"Islamabad {service.title()} Care",
-                    "phone": "+92 51 889211",
-                    "rating": 4.6,
-                    "reviews_count": 38,
-                    "address": f"{sector_code} Markaz, Islamabad",
-                    "distance_km": 1.8,
-                    "estimated_rate": 1500
-                },
-                {
-                    "name": "Super Fix Techs",
-                    "phone": "+92 333 981772",
-                    "rating": 4.3,
-                    "reviews_count": 21,
-                    "address": f"{sector_code} Sector Street 4, Islamabad",
-                    "distance_km": 2.4,
-                    "estimated_rate": 1200
+        for seed in gmaps_seeds[:2]:  # Limit to exactly 2 providers for the time being
+            base_rate = seed["estimated_rate"]
+            dist_charge = max(0.0, (seed["distance_km"] - 3.0) * 20.0)
+            urgency_charge = base_rate * (0.15 if urgency == "same_day" else 0.0)
+            complexity_charge = base_rate * (0.10 if complexity == "intermediate" else 0.20 if complexity == "complex" else 0.0)
+            total = base_rate + dist_charge + urgency_charge + complexity_charge
+            
+            gmaps_providers.append({
+                "name": seed["name"],
+                "phone": seed["phone"],
+                "rating": seed["rating"],
+                "reviews_count": seed["reviews_count"],
+                "address": seed["address"],
+                "distance_km": seed["distance_km"],
+                "pricing_breakdown": {
+                    "base_rate": base_rate,
+                    "distance_surcharge": dist_charge,
+                    "urgency_surcharge": urgency_charge,
+                    "complexity_surcharge": complexity_charge,
+                    "final_total": total
                 }
-            ]
-            for seed in gmaps_seeds:
-                base_rate = seed["estimated_rate"]
-                dist_charge = max(0.0, (seed["distance_km"] - 3.0) * 20.0)
-                urgency_charge = base_rate * (0.15 if urgency == "same_day" else 0.0)
-                complexity_charge = base_rate * (0.10 if complexity == "intermediate" else 0.20 if complexity == "complex" else 0.0)
-                total = base_rate + dist_charge + urgency_charge + complexity_charge
-                
-                gmaps_providers.append({
-                    "name": seed["name"],
-                    "phone": seed["phone"],
-                    "rating": seed["rating"],
-                    "reviews_count": seed["reviews_count"],
-                    "address": seed["address"],
-                    "pricing_breakdown": {
-                        "base_rate": base_rate,
-                        "distance_surcharge": dist_charge,
-                        "urgency_surcharge": urgency_charge,
-                        "complexity_surcharge": complexity_charge,
-                        "final_total": total
-                    }
-                })
+            })
                 
         return {
             "status": "success",
@@ -382,7 +485,8 @@ def search_providers(service: str, location: str = "", time: str = "", budget: s
             "complexity": complexity,
             "safety_warnings": safety_warnings,
             "registered_providers": registered_providers,
-            "google_maps_providers": gmaps_providers
+            "google_maps_providers": gmaps_providers,
+            "gmaps_providers": gmaps_providers  # Match both frontend keys
         }
         
     except Exception as e:
@@ -403,7 +507,7 @@ search_providers_tool = {
                 "urgency": {"type": "string", "description": "Urgency of the job ('same_day' or 'next_day')"},
                 "complexity": {"type": "string", "description": "Initial complexity level ('basic', 'intermediate', or 'complex')"}
             },
-            "required": ["service", "urgency", "complexity"]
+            "required": ["service"]  # Only require service, let Groq decide on others or fall back, preventing formatting errors
         }
     }
 }
@@ -642,6 +746,10 @@ def check_pending_jobs(service_type: str, provider_location: str = ""):
         "cleaner": "CS-01",
         "electrical": "HS-03",
         "electrician": "HS-03",
+        "electronics": "HS-03",
+        "electronic": "HS-03",
+        "appliances": "HS-03",
+        "appliance": "HS-03",
     }
     
     service_code = "HS-04"
@@ -766,6 +874,10 @@ def register_provider(name: str, phone: str, location: str, service_types: list,
             "cleaner": "CS-01",
             "electrical": "HS-03",
             "electrician": "HS-03",
+            "electronics": "HS-03",
+            "electronic": "HS-03",
+            "appliances": "HS-03",
+            "appliance": "HS-03",
         }
         
         for idx, s in enumerate(service_types):
@@ -842,12 +954,16 @@ customer_instruction = """You are an intelligent customer service agent for the 
 
 ---
 CRITICAL TOOL INSTRUCTIONS:
-1. When a user makes a request (e.g. "I want my AC fixed today in G-13"), your primary and ONLY goal is to IMMEDIATELY invoke the `search_providers` tool. Do NOT write any conversational text, pleasantries, or explanations before calling the tool. Call the tool first!
-2. When the user confirms they want to proceed and book a specific provider (e.g. "book Zahid Mehmood" or "confirm booking" or "yes go ahead"), your primary and ONLY goal is to IMMEDIATELY invoke the `book_service` tool. Do NOT write any pleasantries before calling the tool. Call it first!
+1. When a user makes a request (e.g. "I want my AC fixed today in G-13"), invoke the `search_providers` tool.
+2. When the user confirms they want to proceed and book a specific provider (e.g. "book Zahid Mehmood" or "confirm booking" or "yes go ahead"), invoke the `book_service` tool.
 3. When the user wants to cancel a booking or file a dispute (e.g. "cancel my booking", "dispute this job", "booking canceled"), you MUST first invoke `get_active_bookings` to fetch the list of their active bookings in the database.
 4. Once you have the list of active bookings:
    - If there is exactly one active booking, or if the user confirms which booking they want to cancel/dispute, you MUST ask for the reason of cancellation or dispute if they haven't provided one.
-   - Once they provide a reason, immediately invoke the `cancel_booking` or `file_dispute` tool to commit the database update!
+   - Once they provide a reason, invoke the `cancel_booking` or `file_dispute` tool to commit the database update!
+
+---
+RESPONSE FORMATTING INSTRUCTION:
+When presenting matched service providers to the user, you MUST only mention the top 3 recommended options in your text response. Instruct the user that they can see a full side-by-side comparison (including Google Maps directories) by clicking the "More Information" button. Keep your reply highly concise.
 
 ---
 REASONING TRANSPARENCY (ONLY AFTER TOOL RETURNS):
@@ -875,8 +991,8 @@ provider_instruction = """You are a smart onboarding and dispatch agent for busi
 
 ---
 CRITICAL TOOL INSTRUCTION:
-1. When a new provider gives their information (name, phone, sector location, service types, hours, base rate), your primary and ONLY goal is to IMMEDIATELY invoke the `register_provider` tool. Do NOT write any pleasantries before calling the tool.
-2. If they are already registered or just asking for work, IMMEDIATELY call the `check_pending_jobs` tool. Do NOT write text before calling the tool.
+1. When a new provider gives their information (name, phone, sector location, service types, hours, base rate), invoke the `register_provider` tool.
+2. If they are already registered or just asking for work, call the `check_pending_jobs` tool.
 
 Once the tool completes successfully, write a professional and encouraging message confirming the database operation details to the provider."""
 

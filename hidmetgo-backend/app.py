@@ -63,11 +63,11 @@ def process_request():
             if mode == 'provider':
                 agent_response = provider_agent.generate_response(full_message, user_id=user_id)
                 agent_name = provider_agent.name
-                history = provider_agent.chat_history
+                history = provider_agent.get_user_history(user_id)
             else:
                 agent_response = customer_agent.generate_response(full_message, user_id=user_id)
                 agent_name = customer_agent.name
-                history = customer_agent.chat_history
+                history = customer_agent.get_user_history(user_id)
             
             response = {
                 'user_id': user_id,
@@ -100,11 +100,35 @@ def process_request():
 def clear_agent_history():
     """Clears the chat history of both agents to start a new chat session"""
     try:
-        customer_agent.clear_history()
-        provider_agent.clear_history()
+        data = request.get_json(silent=True) or {}
+        user_id = data.get('user_id') or request.args.get('user_id')
+        customer_agent.clear_history(user_id)
+        provider_agent.clear_history(user_id)
         return jsonify({
             'status': 'success',
             'message': 'Agent chat histories cleared successfully'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 500
+
+
+# Get agent history endpoint
+@app.route('/api/agent/history', methods=['GET'])
+def get_agent_history():
+    """Gets the active chat history of both agents"""
+    try:
+        mode = request.args.get('mode', 'customer')
+        user_id = request.args.get('user_id', 'anonymous')
+        if mode == 'provider':
+            history = provider_agent.get_user_history(user_id)
+        else:
+            history = customer_agent.get_user_history(user_id)
+        return jsonify({
+            'status': 'success',
+            'history': history
         }), 200
     except Exception as e:
         return jsonify({

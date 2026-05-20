@@ -23,7 +23,7 @@ function RouteGuard() {
     const inAuthGroup = segments[0] === "(auth)";
     const inRoot = segments[0] === undefined || segments[0] === "index";
     // Don't redirect away if the provider is actively on the onboarding screen
-    const inOnboarding = segments[1] === "onboarding";
+    const inOnboarding = (segments as string[]).includes("onboarding");
 
     if (!session) {
       // Not logged in — send to role selection
