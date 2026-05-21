@@ -10,17 +10,20 @@
 1. [What is HunarMand?](#what-is-hunarmand)
 2. [Architecture](#architecture)
 3. [Agentic Workflow](#agentic-workflow)
-4. [Data Schemas](#data-schemas)
-5. [Tools & APIs](#tools--apis)
-6. [Antigravity's Role](#antigravitys-role)
-7. [Antigravity Reasoning Traces](#antigravity-reasoning-traces)
-8. [Setup Steps](#setup-steps)
-9. [Assumptions](#assumptions)
-10. [Baseline Comparison](#baseline-comparison)
-11. [Robustness & Edge Cases](#robustness--edge-cases)
-12. [Cost & Scalability](#cost--scalability)
-13. [Limitations](#limitations)
-14. [Privacy Note](#privacy-note)
+4. [Antigravity Workflow](#antigravity-workflow)
+5. [Provider Dataset Schema](#provider-dataset-schema)
+6. [Matching Factors](#matching-factors)
+7. [Data Schemas](#data-schemas)
+8. [Tools & APIs](#tools--apis)
+9. [Antigravity's Role](#antigravitys-role)
+10. [Antigravity Reasoning Traces](#antigravity-reasoning-traces)
+11. [Setup Steps](#setup-steps)
+12. [Assumptions](#assumptions)
+13. [Baseline Comparison](#baseline-comparison)
+14. [Robustness & Edge Cases](#robustness--edge-cases)
+15. [Cost & Scalability](#cost--scalability)
+16. [Limitations](#limitations)
+17. [Privacy Note](#privacy-note)
 
 ---
 
@@ -131,6 +134,188 @@ Phase 8: Retry, Decline & Dispute Logic
   → file_dispute tool → INSERT into disputes, UPDATE booking status → 'disputed'
   → AI classifies dispute type: DIS-01 (price) / DIS-02 (quality) / DIS-03 (behaviour) / DIS-04 (delay)
 ```
+
+---
+
+## Antigravity Workflow
+
+This section documents the **step-by-step workflow** that Antigravity (the AI coding agent) followed to build HunarMand — distinct from the app's own agentic workflow above.
+
+```
+Step 1 — Brief Intake
+  → User describes the product vision at a high level
+  → Antigravity asks clarifying questions about tech stack, scale, and constraints
+  → Antigravity generates 8-file product specification (haazir-01 through haazir-08)
+
+Step 2 — Architecture Design
+  → Antigravity designs dual-agent system (consumer + provider) with separate tool sets
+  → Produces schema.sql (518 lines): tables, triggers, RLS policies, FSM constraints
+  → Selects Groq + LLaMA as AI layer; Flask as API; Supabase as DB
+
+Step 3 — Backend Implementation
+  → Antigravity writes agent.py (1,006 lines): OddJobsAgent class + 7 tool functions
+  → Writes app.py (297 lines): Flask routes + CORS + per-user session management
+  → Implements classify_complexity() with Urdu/Roman Urdu keyword detection
+  → Implements dynamic pricing engine with 5 components + loyalty tiers
+
+Step 4 — Error Detection & Self-Healing
+  → Detects Groq model decommission → upgrades model string
+  → Detects .env loading order bug → restructures imports
+  → Detects FK constraint failures → adds self-healing fallback ID resolution
+  → All self-healing events logged with [Self-Healing] prefix in Flask console
+
+Step 5 — Mobile Frontend
+  → Builds 19 consumer screens + 10 provider screens in React Native / Expo Router
+  → Implements "Show Hunar's Thinking" toggle exposing raw agent reasoning
+  → Wires all screens to Flask backend via REST calls
+
+Step 6 — Rebrand (Haazir → HunarMand)
+  → Renames ~40 files, components, auth keys, DB email schemas, system prompts
+  → Renames AI agent identity from "Haazir" to "Hunar" in all backend prompts
+  → Updates app.json: name, slug, package ID
+
+Step 7 — Stress-Testing
+  → Writes test_stress_scenarios.py with 4 automated edge-case tests
+  → Runs tests against live Flask + Supabase: all 4 scenarios PASS
+  → Documents results in walkthrough artifact
+
+Step 8 — Documentation & Artifact Organization
+  → Writes README.md, traces-and-artifacts/ folder, ANTIGRAVITY_REASONING_TRACES.md
+  → Organizes all session logs, transcripts, implementation plans by phase
+```
+
+---
+
+## Provider Dataset Schema
+
+The provider dataset is stored across 5 normalized Supabase tables. Together they form the complete profile of a registered service professional.
+
+### `provider_profiles` — Core Provider Record
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | `UUID` (PK) | Same as `users.id` (shared auth) |
+| `user_id` | `UUID` (FK → users) | Links to shared auth table |
+| `business_name` | `TEXT` | Display name shown to consumers |
+| `base_rate_pkr` | `INTEGER` | Provider's self-declared rate per job (PKR) |
+| `base_rating` | `NUMERIC(3,2)` | Average overall rating (0.00–10.00) |
+| `punctuality_rating` | `NUMERIC(3,2)` | Average on-time score from consumer reviews |
+| `quality_rating` | `NUMERIC(3,2)` | Average quality score from consumer reviews |
+| `behaviour_rating` | `NUMERIC(3,2)` | Average behaviour score |
+| `total_completed` | `INTEGER` | Total successfully completed jobs |
+| `total_cancelled` | `INTEGER` | Jobs cancelled by provider |
+| `cancellation_score` | `NUMERIC(5,4)` | `total_cancelled / (total_completed + total_cancelled)` |
+| `dispute_score` | `NUMERIC(5,4)` | `disputes_against / total_completed` |
+| `punctuality_score` | `NUMERIC(5,4)` | Derived on-time delivery ratio |
+| `availability_status` | `ENUM` | `available`, `unavailable`, `search_hidden`, `suspended`, `blacklisted` |
+| `account_status` | `ENUM` | `active`, `suspended`, `search_hidden`, `blacklisted` |
+| `created_at` | `TIMESTAMPTZ` | Registration timestamp |
+
+### `provider_services` — What They Offer
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | `UUID` (PK) | |
+| `provider_id` | `UUID` (FK → provider_profiles) | |
+| `service_code` | `TEXT` | e.g. `HS-01` (Plumbing), `HS-04` (AC Repair), `CS-01` (Cleaning) |
+| `per_job_rate_pkr` | `INTEGER` | Service-specific rate override (falls back to base_rate if null) |
+
+**Service Code Catalogue (sample):**
+
+| Code | Service | Default Tier |
+|------|---------|-------------|
+| `HS-01` | Plumbing (general) | Intermediate |
+| `HS-04` | AC Repair / Servicing | Intermediate |
+| `HS-14` | Geyser Installation | Intermediate |
+| `HS-15` | Compressor / PCB Repair | Complex |
+| `CS-01` | Home Cleaning | Basic |
+| `CS-04` | Sofa / Carpet Cleaning | Basic |
+| `EL-01` | Electrician (general) | Basic→Intermediate |
+
+### `provider_sectors` — Geographic Coverage
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | `UUID` (PK) | |
+| `provider_id` | `UUID` (FK) | |
+| `sector_code` | `TEXT` | Islamabad sector (e.g. `G-13`, `F-8`, `I-8`, `H-12`) |
+
+### `provider_availability` — Weekly Schedule
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | `UUID` (PK) | |
+| `provider_id` | `UUID` (FK) | |
+| `day_of_week` | `INTEGER` | 0=Monday … 6=Sunday |
+| `open_time` | `TIME` | Shift start (e.g. `09:00`) |
+| `close_time` | `TIME` | Shift end (e.g. `18:00`) |
+| `is_available` | `BOOLEAN` | Manual override toggle |
+
+### `surge_flags` — Demand Surge Tracker
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `service_code` | `TEXT` | |
+| `sector_code` | `TEXT` | |
+| `is_surge_active` | `BOOLEAN` | True when ≥3 active requests in sector+service in last 2 hours |
+| `updated_at` | `TIMESTAMPTZ` | |
+
+---
+
+## Matching Factors
+
+When a consumer requests a service, `search_providers` runs a two-stage pipeline:
+
+### Stage 1 — Hard Filters (Sequential Elimination)
+
+Providers are eliminated if they fail **any** of the following:
+
+| # | Filter | Logic |
+|---|--------|-------|
+| 1 | **Service Match** | `provider_services.service_code = requested_service_code` |
+| 2 | **Sector Coverage** | `provider_sectors.sector_code = consumer_sector` |
+| 3 | **Availability Status** | `availability_status = 'available'` AND `account_status = 'active'` |
+| 4 | **Schedule Match** | Active schedule covers the requested day + time slot |
+| 5 | **No Double-Booking** | No existing confirmed/pending booking within ±30 min travel buffer |
+| 6 | **Session Exclusion** | Provider has not already declined or timed out on this specific job request |
+
+### Stage 2 — Soft Scoring (Composite Rank 0–100)
+
+Providers that pass all hard filters are scored and ranked:
+
+| Factor | Weight | Source Column | Description |
+|--------|--------|---------------|-------------|
+| **Rating** | 40% | `base_rating / 10` | Average consumer rating (0–10 scale normalized to 0–1) |
+| **Punctuality** | 20% | `punctuality_score` | On-time delivery ratio |
+| **Cancellation** | 20% | `1 - cancellation_score` | Lower cancellation rate = higher score |
+| **Dispute Score** | 20% | `1 - dispute_score` | Fewer disputes = higher score |
+
+```python
+# Composite scoring formula (from agent.py)
+composite = (
+    (provider['base_rating'] / 10) * 0.40 +
+    provider['punctuality_score']          * 0.20 +
+    (1 - provider['cancellation_score'])   * 0.20 +
+    (1 - provider['dispute_score'])        * 0.20
+)
+```
+
+### Tiebreakers
+- Higher `total_completed` wins if composite scores are equal
+- If consumer is `budget_sensitive=true`: lower `base_rate_pkr` wins
+
+### Pipeline B — Google Maps Fallback
+
+Triggered automatically when `registered_providers` list is empty:
+
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| Google Rating | 25% | Star rating from Google Places |
+| Review Count | 20% | More reviews = more trust |
+| Sentiment Score | 20% | NLP-derived sentiment from review text |
+| Proximity | 20% | Haversine distance from consumer sector centroid |
+| Phone Presence | 10% | Business has a callable number |
+| Semantic Match | 5% | Category confidence ≥ 0.5 for the requested service type |
 
 ---
 
