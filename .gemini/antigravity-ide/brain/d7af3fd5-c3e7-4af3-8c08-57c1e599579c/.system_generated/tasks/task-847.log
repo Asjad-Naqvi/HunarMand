@@ -1,0 +1,63 @@
+=================================================================
+ HAAZIR � SEEDING DUMMY PROVIDERS INTO SUPABASE 
+=================================================================
+
+>> Seeding: Ali Hassan (G-13)...
+  [OK] User ID: ea3e1fe2-e97d-4bda-ab9f-d0d7e003dc2a
+  [OK] Profile created/updated (rating=4.8, jobs=127)
+  [OK] Services: ['HS-04', 'HS-03']
+  [OK] Sectors: ['G-13']
+  [OK] Availability: 09:00:00 -> 19:00:00
+
+>> Seeding: Usman Butt (F-7)...
+  [OK] User ID: 04f7ef01-e061-4fdc-905a-835bd5770b9a
+  [OK] Profile created/updated (rating=4.6, jobs=89)
+  [OK] Services: ['HS-01']
+  [OK] Sectors: ['F-7']
+  [OK] Availability: 08:00:00 -> 18:00:00
+
+>> Seeding: Rizwan Ahmed (I-8)...
+  [OK] User ID: 83e30636-640f-4ed7-921a-12d21f344de0
+  [OK] Profile created/updated (rating=4.9, jobs=203)
+  [OK] Services: ['HS-03']
+  [OK] Sectors: ['I-8']
+  [OK] Availability: 09:00:00 -> 21:00:00
+
+>> Seeding: Babar Khan (E-11)...
+  [OK] User ID: 39e93c6e-7502-47aa-aee4-1faa28858105
+  [OK] Profile created/updated (rating=4.5, jobs=64)
+  [OK] Services: ['CS-02', 'CS-01']
+  [OK] Sectors: ['E-11']
+  [OK] Availability: 10:00:00 -> 18:00:00
+
+>> Seeding: Tariq Mehmood (D-12)...
+  [OK] User ID: 3643a142-527b-48dd-8f83-8cfea2c4c225
+  [OK] Profile created/updated (rating=4.7, jobs=41)
+  [OK] Services: ['HS-02']
+  [OK] Sectors: ['D-12']
+  [OK] Availability: 09:00:00 -> 18:00:00
+
+>> Seeding: Zahid Mehmood (G-13, G-14, G-11, F-11)...
+  [OK] User ID: c99fe8e5-6bce-49f3-b359-4fa73c7759d2
+  [OK] Profile created/updated (rating=4.9, jobs=182)
+  [OK] Services: ['HS-01', 'HS-03']
+  [OK] Sectors: ['G-13', 'G-14', 'G-11', 'F-11']
+  [OK] Availability: 08:00:00 -> 20:00:00
+
+>> Seeding: Kashif Anwar (F-7, F-6, F-8, E-11)...
+  [OK] User ID: c21f0e17-5559-49b9-95ba-1a070aeaf1d8
+  [OK] Profile created/updated (rating=4.7, jobs=110)
+  [OK] Services: ['HS-04', 'CS-02', 'CS-01']
+  [OK] Sectors: ['F-7', 'F-6', 'F-8', 'E-11']
+  [OK] Availability: 09:00:00 -> 22:00:00
+
+>> Seeding: Muhammad Irfan (I-8, I-9, I-10, H-13)...
+  [OK] User ID: 3fee8de3-c198-4956-b1c5-f3871b729130
+  [OK] Profile created/updated (rating=4.8, jobs=94)
+  [OK] Services: ['HS-02', 'HS-01']
+  [OK] Sectors: ['I-8', 'I-9', 'I-10', 'H-13']
+  [OK] Availability: 08:00:00 -> 19:00:00
+
+=================================================================
+ SEEDING COMPLETE! All providers loaded into Supabase. 
+=================================================================

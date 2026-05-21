@@ -1,0 +1,7 @@
+Copy-Item : A positional parameter cannot be found that accepts argument '/Y'.
+At line:1 char:1
++ copy "D:\oddconnector\hidmetgo\assets\HunarMand APK Icon.png" "D:\odd ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Copy-Item], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.CopyItemCommand
+ 

@@ -1,0 +1,49 @@
+Waiting 2 seconds for Flask server to fully initialize...
+
+[TEST 1] Testing Customer Agent with Safety Warning & Google Maps Fallback...
+[SUCCESS] Customer Agent Response Received:
+------------------------------------------------------------
+Error generating response: Error code: 400 - {'error': {'message': "Failed to call a function. Please adjust your prompt. See 'failed_generation' for more details.", 'type': 'invalid_request_error', 'code': 'tool_use_failed', 'failed_generation': '<function=search_providers {"service": "electrician", "urgency": "same_day", "complexity": "complex", "location": "G-13"} </function>'}}
+------------------------------------------------------------
+
+[TEST 2] Testing Direct Provider Onboarding to Database (Registering Ali Plumber)...
+[Self-Healing] Found existing user 02748679-c9de-4d67-acd0-c1e3021a5562. Re-using and cleaning profile for provider registration.
+[SUCCESS] Direct Database Onboarding Result:
+------------------------------------------------------------
+{
+  "status": "success",
+  "message": "Successfully registered business Ali Plumber in G-13."
+}
+------------------------------------------------------------
+
+[TEST 3] Testing Customer Agent searching for the newly registered Plumber (Ali)...
+[SUCCESS] Customer Agent Found Registered Provider:
+------------------------------------------------------------
+We have found the following plumbers in G-13 who can fix your leaking tap immediately:
+1. Ali Plumber - Rs. 1470
+2. Asjad - Rs. 1830
+3. Maira - Rs. 1950
+4. Ali Plumber - Rs. 1470
+
+Please let me know if you'd like to book any of these plumbers.
+
+Show Haazir's Thinking:
+1. Message Language detection: The message is in English.
+2. Job Complexity Classification: The job is classified as basic because it involves a simple task of fixing a leaking tap.
+3. Any active Safety Warnings triggered: No safety warnings are triggered for this job.
+4. Composite matching criteria used: The providers are matched based on their availability, rating, and pricing.
+5. Exact dynamic pricing breakdown calculated: 
+- Ali Plumber: Base rate (Rs. 1200) + distance surcharge (Rs. 30) + urgency surcharge (Rs. 180) + complexity surcharge (Rs. 0) + surge surcharge (Rs. 120) - loyalty discount (Rs. 60) = Rs. 1470
+- Asjad: Base rate (Rs. 1500) + distance surcharge (Rs. 30) + urgency surcharge (Rs. 225) + complexity surcharge (Rs. 0) + surge surcharge (Rs. 150) - loyalty discount (Rs. 75) = Rs. 1830
+- Maira: Base rate (Rs. 1600) + distance surcharge (Rs. 30) + urgency surcharge (Rs. 240) + complexity surcharge (Rs. 0) + surge surcharge (Rs. 160) - loyalty discount (Rs. 80) = Rs. 1950
+- Ali Plumber: Base rate (Rs. 1200) + distance surcharge (Rs. 30) + urgency surcharge (Rs. 180) + complexity surcharge (Rs. 0) + surge surcharge (Rs. 120) - loyalty discount (Rs. 60) = Rs. 1470
+
+If you don't want to book any of these providers, we can also recommend the following Google Maps providers:
+1. Islamabad Plumbing Care - Rs. 1725
+2. Super Fix Techs - Rs. 1380
+3. G-13 Repair Experts - Rs. 2070
+4. Professional Home Care Pros - Rs. 2342
+5. Capital Repair Hub - Rs. 1265
+
+Please let me know your preference.
+------------------------------------------------------------

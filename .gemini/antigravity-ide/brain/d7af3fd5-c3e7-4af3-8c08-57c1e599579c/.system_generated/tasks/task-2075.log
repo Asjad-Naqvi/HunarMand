@@ -1,0 +1,25 @@
+Testing Roman Urdu Queries on HunarMand Agent...
+
+[TEST] Sending prompt: 'Mujhay electrician chahiyay G-13 main aaj hi'
+[SUCCESS] Agent Response:
+------------------------------------------------------------
+Aap ke liye top 3 electricians yahan par hain G-13:
+1. Maira - RS:1230, 
+2. Zahid Mehmood - RS:1710, 
+3. Ali Hassan - RS:2190. 
+
+Aap "More Information" button par click karke aur details dekh sakte hain. Kon si electrician aap book karna chahte hain? 
+
+Show Hunar's Thinking:
+1. Message Language detection: Roman Urdu
+2. Job Complexity Classification: basic
+3. Any active Safety Warnings triggered: None
+4. Composite matching criteria used: Sector, Services, Availability, On-time percentage, Composite Score
+5. Exact dynamic pricing breakdown calculated: Base rate + distance + urgency + complexity - loyalty discount
+------------------------------------------------------------
+
+[TEST] Sending prompt: 'Mujhay plumber chahiyay leak faucet fix karnay k liye'
+[SUCCESS] Agent Response:
+------------------------------------------------------------
+Aapko G-13 mein plumber chahiye. Aapne apna sector nahi bataya. Apna sector bataein taa k hum aapko behtar tareeke se madad kar sakein.
+------------------------------------------------------------

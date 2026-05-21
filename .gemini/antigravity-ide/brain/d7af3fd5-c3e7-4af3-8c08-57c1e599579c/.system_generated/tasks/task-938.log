@@ -1,0 +1,70 @@
+======================================================================
+ REGISTERING AND SEEDING DUAL AUTH & DB TEST USERS 
+======================================================================
+
+[+] Seeding: Test Customer (+923111234509) - Role: consumer
+[!] Purging Auth collision for +923111234509: 92d3bf0b-11af-4e00-9aa6-b960bfbcc395
+  [OK] Auth user created! ID: 9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78
+  [OK] Synced to public.users!
+  [OK] Consumer profile created!
+
+[+] Seeding: Zahid Plumbing (+923001111111) - Role: provider
+  [OK] Auth user created! ID: a2417c1e-d0c6-4163-b0c7-afde83a6bbe9
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('HS-01', 1200)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+
+[+] Seeding: Usman Plumbing (+923002222222) - Role: provider
+  [OK] Auth user created! ID: 79fd593d-fb2f-4aae-a865-70ef151d4a92
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('HS-01', 1400)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+
+[+] Seeding: Rizwan Electrician (+923003333333) - Role: provider
+  [OK] Auth user created! ID: eb07d391-34c1-4eb1-897b-6255b282d53c
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('HS-03', 1500)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+
+[+] Seeding: Ali Electrician (+923004444444) - Role: provider
+  [OK] Auth user created! ID: 97e81b87-9c1f-42b1-a897-f19891f07c0a
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('HS-03', 1300)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+
+[+] Seeding: Babar Cleaning (+923005555555) - Role: provider
+  [OK] Auth user created! ID: 747d203a-29f3-439e-957d-a82bfc1755ab
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('CS-01', 2000), ('CS-02', 2500)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+
+[+] Seeding: Kashif Cleaning (+923006666666) - Role: provider
+  [OK] Auth user created! ID: f342bb58-d946-4a7c-87bc-bcd74a02216c
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('CS-01', 1800), ('CS-02', 2200)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+
+[+] Seeding: Test Provider (+923111234510) - Role: provider
+[!] Purging Auth collision for +923111234510: 03294663-ffea-43df-bcd0-8662db3a49ab
+  [OK] Auth user created! ID: 774b82a2-be10-4bf6-b8e5-9d5ebd2db7ab
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('HS-04', 2000)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+
+======================================================================
+ ALL TEST USERS FULLY REGISTERED WITH PASSWORD: password123 
+======================================================================

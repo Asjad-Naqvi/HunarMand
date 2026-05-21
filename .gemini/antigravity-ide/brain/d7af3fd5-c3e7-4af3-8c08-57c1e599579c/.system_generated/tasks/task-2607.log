@@ -1,0 +1,301 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.16:5000
+Press CTRL+C to quit
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 01:58:06] "GET /api/agent/history?mode=customer&user_id=9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:00:49] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:01:12] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:01:39] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:01:52] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:02:09] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:02:09] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:02:26] "GET /api/agent/history?mode=provider&user_id=a833240c-437b-426a-9be9-086019a74388 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:04:45] "GET /api/agent/history?mode=provider&user_id=4912edcd-63a2-49e1-a770-8c128c127b5b HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\test_roman_urdu.py', reloading
+Agent triggered tool: search_providers with args: {'budget': 'None', 'complexity': 'basic', 'location': 'None', 'service': 'AC repair', 'time': 'None', 'urgency': 'same_day'}
+Agent triggered tool: search_providers with args: {'budget': 'None', 'complexity': 'basic', 'location': 'G-13', 'service': 'plumbing', 'time': 'None', 'urgency': 'same_day'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1470, 'provider_id': '64d81ab0-efbd-4897-9ae2-ae5e77930f69', 'service_code': 'HS-01'}
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 02:05:44] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:06:23] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:06:27] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:06:30] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:06:56] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:07:39] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:11] "POST /api/agent/process HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:13] "POST /api/agent/clear HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:16] "POST /api/agent/process HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:22] "POST /api/agent/process HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:26] "POST /api/agent/clear HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:28] "POST /api/agent/process HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:33] "POST /api/agent/process HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:33] "POST /api/agent/clear HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 02:08:33] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:16:14] "GET /api/agent/history?mode=provider&user_id=3d2e73f4-10c4-48ad-a598-57c1e11b04fb HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:17:12] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:18:07] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:18:11] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:18:32] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:19:20] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:19:28] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:19:45] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:22:55] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:23:17] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:23:17] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 02:23:17] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\test_stress_scenarios.py', reloading
+Agent triggered tool: register_provider with args: {'base_rate': 1000, 'hours': '09:00 to 18:00', 'location': 'G-13', 'name': 'Provider G-13', 'phone': '0333-1234567', 'service_types': ['Cleaning']}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'cleaning services'}
+Agent triggered tool: register_provider with args: {'base_rate': 1200, 'hours': '09:00 to 18:00', 'location': 'I-8', 'name': 'Ali', 'phone': '923111234567', 'service_types': ['cleaning']}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'I-8', 'service': 'cleaning services'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1290, 'provider_id': '3d2e73f4-10c4-48ad-a598-57c1e11b04fb', 'service_code': 'CS-01'}
+[Self-Healing] Dynamically resolved fallback consumer ID: 9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78
+Agent triggered tool: get_active_bookings with args: {}
+Agent triggered tool: get_active_bookings with args: {}
+Agent triggered tool: register_provider with args: {'base_rate': 1000, 'hours': 'please provide hours', 'location': 'I-8', 'name': 'Cleaner Services', 'phone': 'please provide phone number', 'service_types': ['cleaning']}
+[Self-Healing] Found existing user b323ad2a-6e45-4997-8ea4-16ec62fbec59. Re-using and cleaning profile for provider registration.
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'I-8', 'service': 'cleaning services'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1290, 'provider_id': '3d2e73f4-10c4-48ad-a598-57c1e11b04fb', 'service_code': 'CS-01'}
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 04:21:40] "GET /api/agent/history?mode=customer&user_id=9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 04:21:46] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 04:21:56] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\__init__.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.16 - - [21/May/2026 05:33:02] "GET /health HTTP/1.1" 200 -
+192.168.1.16 - - [21/May/2026 05:36:28] "GET /health HTTP/1.1" 200 -
+192.168.1.16 - - [21/May/2026 05:36:28] "GET /favicon.ico HTTP/1.1" 404 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\test_search.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.16 - - [21/May/2026 05:50:21] "GET / HTTP/1.1" 404 -
+192.168.1.16 - - [21/May/2026 05:50:22] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.1.16 - - [21/May/2026 05:50:56] "GET / HTTP/1.1" 404 -
+192.168.1.16 - - [21/May/2026 05:54:48] "GET / HTTP/1.1" 404 -
+192.168.1.16 - - [21/May/2026 05:56:25] "GET /health HTTP/1.1" 200 -
+192.168.1.16 - - [21/May/2026 05:57:00] "GET / HTTP/1.1" 404 -
+192.168.1.16 - - [21/May/2026 05:57:00] "GET / HTTP/1.1" 404 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.16 - - [21/May/2026 05:58:40] "GET /health HTTP/1.1" 200 -
+192.168.1.16 - - [21/May/2026 06:05:45] "GET /health HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\sync_consumer_id.py', reloading
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\test_roman_urdu.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 06:18:09] "GET /api/agent/history?mode=customer&user_id=9861c6e9-324e-47cb-94c4-ab44fac6503d HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:18:15] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:26:49] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:26:54] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:34:49] "GET /api/agent/history?mode=provider&user_id=4912edcd-63a2-49e1-a770-8c128c127b5b HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:36:31] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:37:19] "GET /api/agent/history?mode=customer&user_id=9861c6e9-324e-47cb-94c4-ab44fac6503d HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:37:32] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:37:55] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:39:02] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:39:45] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:39:45] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\__init__.py', reloading
+Agent triggered tool: register_provider with args: {'base_rate': 2000, 'hours': 'unknown', 'location': 'I-8', 'name': 'Carpet Cleaner', 'phone': 'unknown', 'service_types': ['Carpet Cleaning']}
+[Self-Healing] Found existing user b323ad2a-6e45-4997-8ea4-16ec62fbec59. Re-using and cleaning profile for provider registration.
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'I-8', 'service': 'carpet cleaning'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1290, 'provider_id': '3d2e73f4-10c4-48ad-a598-57c1e11b04fb', 'service_code': 'CS-01'}
+[Self-Healing] Dynamically resolved fallback consumer ID: 9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\check_auth_users.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 06:53:44] "GET /api/agent/history?mode=provider&user_id=64e005d6-253c-474c-8caf-80f1b521c8c6 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 06:55:08] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:02:58] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:03:16] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:03:30] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:04:16] "GET /api/agent/history?mode=customer&user_id=9861c6e9-324e-47cb-94c4-ab44fac6503d HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:04:24] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:04:38] "POST /api/agent/process HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\create_test_users.py', reloading
+Agent triggered tool: register_provider with args: {'base_rate': 1000, 'hours': 'not provided', 'location': 'I-9', 'name': 'Carpet Cleaner', 'phone': 'not provided', 'service_types': ['carpet cleaning']}
+[Self-Healing] Found existing user b323ad2a-6e45-4997-8ea4-16ec62fbec59. Re-using and cleaning profile for provider registration.
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'I-8', 'service': 'carpet cleaning'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1290, 'provider_id': '3d2e73f4-10c4-48ad-a598-57c1e11b04fb', 'service_code': 'CS-01'}
+[Self-Healing] Dynamically resolved fallback consumer ID: 9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'not provided', 'service': 'all', 'urgency': 'same_day'}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'plumbing', 'urgency': 'same_day'}
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\test_stress_scenarios.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 07:10:34] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:10:39] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:10:55] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:11:13] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:11:31] "POST /api/agent/process HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'H-13', 'service': 'carpet cleaning'}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'I-8', 'service': 'carpet cleaning'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1290, 'provider_id': '3d2e73f4-10c4-48ad-a598-57c1e11b04fb', 'service_code': 'CS-01'}
+[Booking] user_id 9861c6e9-324e-47cb-94c4-ab44fac6503d is not a consumer (may be provider or missing). Falling back.
+[Self-Healing] Dynamically resolved fallback consumer ID: 9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 07:20:19] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:20:55] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:21:08] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:25:57] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:25:57] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:25:57] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:25:57] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:28:59] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:29:05] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:29:09] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:29:20] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:29:54] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:30:07] "POST /api/agent/process HTTP/1.1" 200 -
+127.0.0.1 - - [21/May/2026 07:31:03] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.16 - - [21/May/2026 07:31:41] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:33:04] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:34:23] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:34:30] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:35:17] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:37:05] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\test_chat.py', reloading
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'plumbing'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1605, 'provider_id': '7ea55e98-031e-4b81-bdb6-9bfb4a286104', 'service_code': 'HS-01'}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'ac repair', 'urgency': 'same_day'}
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 07:37:36] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:37:53] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:38:38] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:39:29] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:40:42] "GET /api/agent/history?mode=provider&user_id=c0778282-9196-48a5-aa6a-1c310b12f5d5 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:41:25] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:42:38] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:43:02] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app.py', reloading
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'plumbing'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1290, 'provider_id': '64d81ab0-efbd-4897-9ae2-ae5e77930f69', 'service_code': 'HS-01'}
+Agent triggered tool: register_provider with args: {'base_rate': 1000, 'hours': 'not provided', 'location': 'I-9', 'name': 'Sector I-9 Carpenter', 'phone': 'not provided', 'service_types': ['Carpentry']}
+[Self-Healing] Found existing user b323ad2a-6e45-4997-8ea4-16ec62fbec59. Re-using and cleaning profile for provider registration.
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'I-9', 'service': 'carpentry'}
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 07:50:04] "GET /api/agent/history?mode=customer&user_id=9cfe6848-b08b-410e-88f4-4c42a1268ec9 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:50:12] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:50:27] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:50:42] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 07:51:03] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.16 - - [21/May/2026 08:17:06] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:19:40] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:19:43] "GET /api/agent/history?mode=customer&user_id=9cfe6848-b08b-410e-88f4-4c42a1268ec9 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:19:52] "POST /api/agent/process HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\__init__.py', reloading
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'I-9', 'service': 'carpenter'}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'plumber'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1290, 'provider_id': '64d81ab0-efbd-4897-9ae2-ae5e77930f69', 'service_code': 'HS-01'}
+[Self-Healing] Dynamically resolved fallback consumer ID: 9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': '', 'service': 'plumbing', 'urgency': 'same_day'}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'plumbing'}
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\debug_db.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\venv\\Lib\\site-packages\\requests\\api.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\debug_db.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\hard_sync_v2.py', reloading
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\hard_sync_v2.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+192.168.1.15 - - [21/May/2026 08:28:19] "POST /api/agent/clear HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:28:28] "GET /api/agent/history?mode=customer&user_id=9cfe6848-b08b-410e-88f4-4c42a1268ec9 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:40:23] "GET /api/agent/history?mode=customer&user_id=9cfe6848-b08b-410e-88f4-4c42a1268ec9 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:40:30] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:41:29] "GET /api/agent/history?mode=provider&user_id=3d2e73f4-10c4-48ad-a598-57c1e11b04fb HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:43:02] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:43:41] "GET /api/agent/history?mode=customer&user_id=9cfe6848-b08b-410e-88f4-4c42a1268ec9 HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:44:01] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:44:09] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:44:45] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:45:03] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:45:51] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:46:38] "POST /api/agent/process HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:47:39] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:47:39] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+192.168.1.15 - - [21/May/2026 08:47:39] "GET /api/agent/history?mode=customer&user_id=anonymous HTTP/1.1" 200 -
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app.py', reloading
+Agent triggered tool: register_provider with args: {'base_rate': 1000, 'hours': 'not provided', 'location': 'H-13', 'name': 'Carpet Cleaner', 'phone': 'not provided', 'service_types': ['carpet cleaning']}
+[Self-Healing] Found existing user b323ad2a-6e45-4997-8ea4-16ec62fbec59. Re-using and cleaning profile for provider registration.
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'H-13', 'service': 'carpet cleaning'}
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'plumbing'}
+Agent triggered tool: book_service with args: {'final_estimate_pkr': 1605, 'provider_id': '7ea55e98-031e-4b81-bdb6-9bfb4a286104', 'service_code': 'HS-01'}
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\app\\hidmetgo_agent\\agent.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223
+ * Detected change in 'D:\\oddconnector\\hidmetgo\\hidmetgo-backend\\test_chat.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 122-215-223

@@ -45,11 +45,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Fetch the matching row from public.users to get name, phone, role and onboarded status
   const fetchProfile = async (authUser: User) => {
-    const { data, error } = await supabase
+    // 1. Try finding by ID
+    let { data, error } = await supabase
       .from("users")
       .select("id, name, phone, email, role, provider_profiles(user_id)")
       .eq("id", authUser.id)
-      .single();
+      .maybeSingle();
+
+    // 2. If not found, try phone fallback
+    if ((!data || error) && (authUser.phone || authUser.user_metadata?.phone)) {
+      const userPhone = authUser.phone || authUser.user_metadata?.phone;
+      const cleanPhone = userPhone.replace(/\D/g, "");
+      const last10 = cleanPhone.slice(-10);
+      
+      const phoneVariations = [
+        cleanPhone,
+        `+${cleanPhone}`,
+        `0${last10}`,
+        `+92${last10}`,
+        `92${last10}`
+      ].filter((v, i, self) => v.length >= 7 && self.indexOf(v) === i);
+
+      console.log(`[AuthContext] No user found by ID ${authUser.id}. Trying phone fallback variations:`, phoneVariations);
+      
+      const { data: phoneData, error: phoneError } = await supabase
+        .from("users")
+        .select("id, name, phone, email, role, provider_profiles(user_id)")
+        .in("phone", phoneVariations)
+        .maybeSingle();
+
+      if (phoneData && !phoneError) {
+        console.log(`[AuthContext] Resolved user by phone fallback: ${phoneData.id}`);
+        data = phoneData;
+        error = null;
+      }
+    }
+
+    // 3. If still not found, try email fallback
+    if ((!data || error) && (authUser.email || authUser.user_metadata?.email)) {
+      const userEmail = authUser.email || authUser.user_metadata?.email;
+      const emailPrefix = userEmail.split("@")[0].toLowerCase();
+      
+      const emailVariations = [
+        userEmail.toLowerCase(),
+        `${emailPrefix}@hunarmand.app`,
+        `${emailPrefix}@haazir.app`
+      ].filter((v, i, self) => self.indexOf(v) === i);
+
+      console.log(`[AuthContext] Trying email fallback variations:`, emailVariations);
+      
+      const { data: emailData, error: emailError } = await supabase
+        .from("users")
+        .select("id, name, phone, email, role, provider_profiles(user_id)")
+        .in("email", emailVariations)
+        .maybeSingle();
+
+      if (emailData && !emailError) {
+        console.log(`[AuthContext] Resolved user by email fallback: ${emailData.id}`);
+        data = emailData;
+        error = null;
+      }
+    }
 
     if (data && !error) {
       const pProfiles = data.provider_profiles;
@@ -65,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       
       setUser(updatedUser);
+      console.log("[AuthContext] Resolved user profile:", updatedUser);
       
       // Update locally stored mock user if bypass session is active
       const storedSess = await AsyncStorage.getItem("hunarmand_mock_session");
@@ -73,14 +130,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } else {
       // Fallback: populate what we can from the auth user object
-      setUser({
+      const fallbackUser: HunarMandUser = {
         id: authUser.id,
         name: authUser.user_metadata?.name ?? null,
-        phone: authUser.phone ?? null,
+        phone: authUser.phone ?? authUser.user_metadata?.phone ?? null,
         email: authUser.email ?? null,
         role: (authUser.user_metadata?.role as UserRole) ?? "consumer",
         isOnboarded: false,
-      });
+      };
+      console.log("[AuthContext] Profile not found in public.users, using auth fallback:", fallbackUser);
+      setUser(fallbackUser);
     }
   };
 

@@ -1,0 +1,6 @@
+Registering provider 'amir'...
+[Self-Healing] Found existing user 3d2e73f4-10c4-48ad-a598-57c1e11b04fb. Re-using and cleaning profile for provider registration.
+Registration response: {'status': 'success', 'message': 'Successfully registered business amir in H-13.'}
+
+Searching for carpet cleaning providers at H-13...
+No providers found.

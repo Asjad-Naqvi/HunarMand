@@ -1,0 +1,3 @@
+Registering Sadi in database...
+[Self-Healing] Found existing user 8cf01eba-0399-49d7-8912-d6a7f5821616. Re-using and cleaning profile for provider registration.
+Result: {'status': 'success', 'message': 'Successfully registered business Sadi in G-13.'}

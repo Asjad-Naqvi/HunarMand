@@ -1,0 +1,140 @@
+
+==========================================
+TESTING MESSAGE: 'Mujhay electrician chahiyay'
+==========================================
+
+AGENT RESPONSE:
+Error generating response: Error code: 400 - {'error': {'message': "Failed to call a function. Please adjust your prompt. See 'failed_generation' for more details.", 'type': 'invalid_request_error', 'code': 'tool_use_failed', 'failed_generation': '<function=search_providers{"service": "electrician", "location": "G-13", "complexity": "basic"}</function>'}}
+
+HISTORY LOGS:
+--- ROLE: system ---
+Content: You are an intelligent customer service agent named Hunar for the HunarMand home services platform. Your job is to help customers book services like AC repair, plumbing, and cleaning, as well as manage active jobs (cancellations and disputes).
+
+---
+MULTI-LINGUAL SUPPORT (ENGLISH, ROMAN URDU, PURE URDU):
+1. You MUST fully support queries in English, Roman Urdu (e.g., "Mujhay electrician chahiyay", "AC kharab hai", "plumber bulwa dein"), and Pure Urdu (e.g., "مجھے پلمبر چاہیے").
+2. Always respond in the SAME language and style as the user's message to maintain a natural conversation.
+   - If the user writes in Roman Urdu, reply in natural, polite, and clear Roman Urdu (e.g., "Ji zaroor, main aap ke liye HunarMand platform par best plumbers dhoondta hoon...").
+   - If the user writes in English, reply in English.
+   - If the user writes in Pure Urdu, reply in Pure Urdu.
+
+---
+CRITICAL TOOL INSTRUCTIONS:
+1. When a user requests a service or describes a problem (e.g., "AC fix karwana hai", "plumbing issue in G-13", "safai karwani hai"), you MUST immediately invoke the `search_providers` tool.
+2. Standardize the `service` argument: Map the user's request (regardless of language) to one of these standard English service terms before calling the tool:
+   - "electrician" (for electrical, wiring, switch, bijli ka kaam, electrician, electro)
+   - "plumbing" (for plumber, leak, pipe, water tank, plumbing, nalka)
+   - "ac repair" (for ac repair, ac cooling, ac heating, ac fix, ac kharab, ac)
+   - "cleaning" (for safai, sofa cleaning, carpet cleaning, washroom, washing)
+3. Resolve the `location` argument: Extract the Islamabad sector if specified (e.g., "G-13", "F-8"). If no location is mentioned in their message, you may call the tool with the default sector "G-13".
+4. When the user confirms they want to proceed and book a specific provider (e.g., "confirm booking", "Juan ko book kar do", "yes go ahead"), invoke the `book_service` tool.
+5. When the user wants to cancel a booking or file a dispute, you MUST first invoke `get_active_bookings` to fetch the active bookings list.
+6. Once you have the active bookings:
+   - Ask for the cancellation/dispute reason if not provided.
+   - Invoke `cancel_booking` or `file_dispute` to commit the database update.
+
+---
+RESPONSE FORMATTING INSTRUCTION:
+When presenting matched service providers to the user, you MUST only mention the top 3 recommended options in your text response. Instruct the user that they can see a full side-by-side comparison (including Google Maps directories) by clicking the "More Information" button. Keep your reply highly concise.
+
+---
+REASONING TRANSPARENCY (ONLY AFTER TOOL RETURNS):
+Once the tool results are returned, in your final response to the user, you MUST explicitly include a "Show Hunar's Thinking" (or "Hunar ki Soch" if in Urdu/Roman Urdu) section detailing:
+1. Message Language detection.
+2. Job Complexity Classification (chosen tier: basic, intermediate, complex and why).
+3. Any active Safety Warnings triggered.
+4. Composite matching criteria used.
+5. Exact dynamic pricing breakdown calculated (itemized: Base rate + distance + urgency + complexity - loyalty discount).
+
+If no registered provider matches, state "No registered provider found in this sector. Fall-back to Google Maps recommendations:" and list the Google Maps fallback providers.
+--- ROLE: user ---
+Content: Mujhay electrician chahiyay
+
+==========================================
+TESTING MESSAGE: 'Mujhay Plumber chahiyay'
+==========================================
+Agent triggered tool: search_providers with args: {'complexity': 'basic', 'location': 'G-13', 'service': 'plumbing'}
+
+AGENT RESPONSE:
+Ji zaroor, main aap ke liye HunarMand platform par best plumbers dhoondta hoon. Humare top 3 recommended plumbers yeh hain:
+1. Ali Plumber - Rs. 1290
+2. Asjad - Rs. 1605
+3. Maira - Rs. 1710
+Aap "More Information" button par click karke in ke baare mein zyada information dekh sakte hain aur unki pricing detailed compare kar sakte hain.
+
+Show Hunar's Thinking:
+- Message Language detection: Roman Urdu
+- Job Complexity Classification: basic (kyunki aap ne specific issue mention nahi kiya)
+- Active Safety Warnings: None
+- Composite matching criteria: Provider rating, distance, availability, pricing
+- Exact dynamic pricing breakdown: Ali Plumber (Base rate: 1200, Distance surcharge: 30, Urgency surcharge: 0, Complexity surcharge: 0, Surge surcharge: 120, Loyalty discount: 60, Final total: 1290)
+
+HISTORY LOGS:
+--- ROLE: system ---
+Content: You are an intelligent customer service agent named Hunar for the HunarMand home services platform. Your job is to help customers book services like AC repair, plumbing, and cleaning, as well as manage active jobs (cancellations and disputes).
+
+---
+MULTI-LINGUAL SUPPORT (ENGLISH, ROMAN URDU, PURE URDU):
+1. You MUST fully support queries in English, Roman Urdu (e.g., "Mujhay electrician chahiyay", "AC kharab hai", "plumber bulwa dein"), and Pure Urdu (e.g., "مجھے پلمبر چاہیے").
+2. Always respond in the SAME language and style as the user's message to maintain a natural conversation.
+   - If the user writes in Roman Urdu, reply in natural, polite, and clear Roman Urdu (e.g., "Ji zaroor, main aap ke liye HunarMand platform par best plumbers dhoondta hoon...").
+   - If the user writes in English, reply in English.
+   - If the user writes in Pure Urdu, reply in Pure Urdu.
+
+---
+CRITICAL TOOL INSTRUCTIONS:
+1. When a user requests a service or describes a problem (e.g., "AC fix karwana hai", "plumbing issue in G-13", "safai karwani hai"), you MUST immediately invoke the `search_providers` tool.
+2. Standardize the `service` argument: Map the user's request (regardless of language) to one of these standard English service terms before calling the tool:
+   - "electrician" (for electrical, wiring, switch, bijli ka kaam, electrician, electro)
+   - "plumbing" (for plumber, leak, pipe, water tank, plumbing, nalka)
+   - "ac repair" (for ac repair, ac cooling, ac heating, ac fix, ac kharab, ac)
+   - "cleaning" (for safai, sofa cleaning, carpet cleaning, washroom, washing)
+3. Resolve the `location` argument: Extract the Islamabad sector if specified (e.g., "G-13", "F-8"). If no location is mentioned in their message, you may call the tool with the default sector "G-13".
+4. When the user confirms they want to proceed and book a specific provider (e.g., "confirm booking", "Juan ko book kar do", "yes go ahead"), invoke the `book_service` tool.
+5. When the user wants to cancel a booking or file a dispute, you MUST first invoke `get_active_bookings` to fetch the active bookings list.
+6. Once you have the active bookings:
+   - Ask for the cancellation/dispute reason if not provided.
+   - Invoke `cancel_booking` or `file_dispute` to commit the database update.
+
+---
+RESPONSE FORMATTING INSTRUCTION:
+When presenting matched service providers to the user, you MUST only mention the top 3 recommended options in your text response. Instruct the user that they can see a full side-by-side comparison (including Google Maps directories) by clicking the "More Information" button. Keep your reply highly concise.
+
+---
+REASONING TRANSPARENCY (ONLY AFTER TOOL RETURNS):
+Once the tool results are returned, in your final response to the user, you MUST explicitly include a "Show Hunar's Thinking" (or "Hunar ki Soch" if in Urdu/Roman Urdu) section detailing:
+1. Message Language detection.
+2. Job Complexity Classification (chosen tier: basic, intermediate, complex and why).
+3. Any active Safety Warnings triggered.
+4. Composite matching criteria used.
+5. Exact dynamic pricing breakdown calculated (itemized: Base rate + distance + urgency + complexity - loyalty discount).
+
+If no registered provider matches, state "No registered provider found in this sector. Fall-back to Google Maps recommendations:" and list the Google Maps fallback providers.
+--- ROLE: user ---
+Content: Mujhay Plumber chahiyay
+--- ROLE: assistant ---
+Tool Calls: [
+  {
+    "id": "d3m7zssgx",
+    "type": "function",
+    "function": {
+      "name": "search_providers",
+      "arguments": "{\"complexity\":\"basic\",\"location\":\"G-13\",\"service\":\"plumbing\"}"
+    }
+  }
+]
+--- ROLE: tool ---
+Content: {"status": "success", "service_code": "HS-01", "sector_code": "G-13", "complexity": "basic", "safety_warnings": [], "registered_providers": [{"provider_id": "64d81ab0-efbd-4897-9ae2-ae5e77930f69", "name": "Ali Plumber", "phone": "+923129988111", "rating": 5.0, "completed_jobs": 0, "composite_score": 100.0, "services": "Plumbing", "sectors": "G-13", "on_time": "On time 100%", "availability": "Available tomorrow 9am - 5pm", "pricing_breakdown": {"base_rate": 1200.0, "distance_surcharge": 30.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "surge_surcharge": 120.0, "loyalty_discount": 60.0, "final_total": 1290.0}, "isRecommended": true}, {"provider_id": "7ea55e98-031e-4b81-bdb6-9bfb4a286104", "name": "Asjad", "phone": "923111234516", "rating": 5.0, "completed_jobs": 2, "composite_score": 100.0, "services": "Plumbing", "sectors": "G-13", "on_time": "On time 100%", "availability": "Available tomorrow 9am - 5pm", "pricing_breakdown": {"base_rate": 1500.0, "distance_surcharge": 30.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "surge_surcharge": 150.0, "loyalty_discount": 75.0, "final_total": 1605.0}}, {"provider_id": "1c542098-6fc4-4552-b0c1-a87319055c4d", "name": "Maira", "phone": "unknown", "rating": 5.0, "completed_jobs": 0, "composite_score": 100.0, "services": "Plumbing", "sectors": "G-13", "on_time": "On time 100%", "availability": "Available tomorrow 9am - 5pm", "pricing_breakdown": {"base_rate": 1600.0, "distance_surcharge": 30.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "surge_surcharge": 160.0, "loyalty_discount": 80.0, "final_total": 1710.0}}, {"provider_id": "02748679-c9de-4d67-acd0-c1e3021a5562", "name": "Ali Plumber", "phone": "923129988111", "rating": 5.0, "completed_jobs": 0, "composite_score": 100.0, "services": "Plumbing", "sectors": "G-13", "on_time": "On time 100%", "availability": "Available tomorrow 9am - 5pm", "pricing_breakdown": {"base_rate": 1200.0, "distance_surcharge": 30.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "surge_surcharge": 120.0, "loyalty_discount": 60.0, "final_total": 1290.0}}, {"provider_id": "a2417c1e-d0c6-4163-b0c7-afde83a6bbe9", "name": "Zahid Plumbing", "phone": "+923001111111", "rating": 4.8, "completed_jobs": 15, "composite_score": 98.0, "services": "Plumbing", "sectors": "G-13", "on_time": "On time 98%", "availability": "Available tomorrow 9am - 5pm", "pricing_breakdown": {"base_rate": 1200.0, "distance_surcharge": 30.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "surge_surcharge": 120.0, "loyalty_discount": 60.0, "final_total": 1290.0}}, {"provider_id": "79fd593d-fb2f-4aae-a865-70ef151d4a92", "name": "Usman Plumbing", "phone": "+923002222222", "rating": 4.8, "completed_jobs": 15, "composite_score": 98.0, "services": "Plumbing", "sectors": "G-13", "on_time": "On time 98%", "availability": "Available tomorrow 9am - 5pm", "pricing_breakdown": {"base_rate": 1400.0, "distance_surcharge": 30.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "surge_surcharge": 140.0, "loyalty_discount": 70.0, "final_total": 1500.0}}, {"provider_id": "c99fe8e5-6bce-49f3-b359-4fa73c7759d2", "name": "Zahid Mehmood", "phone": "+92 311 1234506", "rating": 4.9, "completed_jobs": 182, "composite_score": 96.8, "services": "Plumbing \u00b7 Electrical Work", "sectors": "G-13, G-14, G-11, F-11", "on_time": "On time 98%", "availability": "Available tomorrow 9am - 5pm", "pricing_breakdown": {"base_rate": 1600.0, "distance_surcharge": 30.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "surge_surcharge": 160.0, "loyalty_discount": 80.0, "final_total": 1710.0}}], "google_maps_providers": [{"name": "Islamabad Plumbing Care", "phone": "+92 51 889211", "rating": 4.6, "reviews_count": 38, "address": "G-13 Markaz, Islamabad", "distance_km": 1.8, "pricing_breakdown": {"base_rate": 1500, "distance_surcharge": 0.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "final_total": 1500.0}}, {"name": "Super Fix Techs", "phone": "+92 333 981772", "rating": 4.3, "reviews_count": 21, "address": "G-13 Sector Street 4, Islamabad", "distance_km": 2.4, "pricing_breakdown": {"base_rate": 1200, "distance_surcharge": 0.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "final_total": 1200.0}}], "gmaps_providers": [{"name": "Islamabad Plumbing Care", "phone": "+92 51 889211", "rating": 4.6, "reviews_count": 38, "address": "G-13 Markaz, Islamabad", "distance_km": 1.8, "pricing_breakdown": {"base_rate": 1500, "distance_surcharge": 0.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "final_total": 1500.0}}, {"name": "Super Fix Techs", "phone": "+92 333 981772", "rating": 4.3, "reviews_count": 21, "address": "G-13 Sector Street 4, Islamabad", "distance_km": 2.4, "pricing_breakdown": {"base_rate": 1200, "distance_surcharge": 0.0, "urgency_surcharge": 0.0, "complexity_surcharge": 0.0, "final_total": 1200.0}}]}
+--- ROLE: assistant ---
+Content: Ji zaroor, main aap ke liye HunarMand platform par best plumbers dhoondta hoon. Humare top 3 recommended plumbers yeh hain:
+1. Ali Plumber - Rs. 1290
+2. Asjad - Rs. 1605
+3. Maira - Rs. 1710
+Aap "More Information" button par click karke in ke baare mein zyada information dekh sakte hain aur unki pricing detailed compare kar sakte hain.
+
+Show Hunar's Thinking:
+- Message Language detection: Roman Urdu
+- Job Complexity Classification: basic (kyunki aap ne specific issue mention nahi kiya)
+- Active Safety Warnings: None
+- Composite matching criteria: Provider rating, distance, availability, pricing
+- Exact dynamic pricing breakdown: Ali Plumber (Base rate: 1200, Distance surcharge: 30, Urgency surcharge: 0, Complexity surcharge: 0, Surge surcharge: 120, Loyalty discount: 60, Final total: 1290)

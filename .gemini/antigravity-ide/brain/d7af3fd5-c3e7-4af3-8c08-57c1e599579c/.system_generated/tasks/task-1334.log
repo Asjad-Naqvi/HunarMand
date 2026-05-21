@@ -1,0 +1,15 @@
+WARNING: TCP connect to (20.207.73.82 : 22) failed
+WARNING: Ping to 20.207.73.82 failed with status: TimedOut
+
+
+ComputerName           : github.com
+RemoteAddress          : 20.207.73.82
+RemotePort             : 22
+InterfaceAlias         : Wi-Fi
+SourceAddress          : 192.168.1.16
+PingSucceeded          : False
+PingReplyDetails (RTT) : 0 ms
+TcpTestSucceeded       : False
+
+
+

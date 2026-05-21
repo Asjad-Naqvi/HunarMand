@@ -1,0 +1,6 @@
+Successfully scheduled one-shot timer.
+Expected to fire at: 2026-05-21T01:26:05+05:00
+Prompt: Check if task-2350 has completed
+
+[2026-05-21T01:26:03+05:00] Still waiting. Remaining time: 2s
+[2026-05-21T01:26:05+05:00] Timer fired.

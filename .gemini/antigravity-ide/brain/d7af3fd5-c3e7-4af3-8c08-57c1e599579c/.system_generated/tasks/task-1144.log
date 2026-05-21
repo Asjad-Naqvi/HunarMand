@@ -1,0 +1,12 @@
+======================================================================
+ SEEDING JUAN ELECTRICIAN PROVIDER 
+======================================================================
+
+[+] Seeding: Juan (+923111234508) - Role: provider
+  [OK] Auth user created! ID: add03cbb-c88c-477e-a943-5b4e4437fc8f
+  [OK] Synced to public.users!
+  [OK] Provider profile created!
+  [OK] Services seeded: [('HS-03', 1200)]
+  [OK] Sectors seeded: ['G-13']
+  [OK] Availability schedule seeded!
+======================================================================

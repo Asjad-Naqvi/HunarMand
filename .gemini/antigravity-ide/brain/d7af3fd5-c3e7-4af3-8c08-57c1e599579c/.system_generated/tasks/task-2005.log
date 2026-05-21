@@ -1,0 +1,9 @@
+app/_layout.tsx(24,20): error TS2367: This comparison appears to be unintentional because the types '1' and '0' have no overlap.
+components/hunarmand/consumer/HzChatScreen.tsx(587,13): error TS2322: Type '{ children: Element; onPress: () => Promise<void>; activeOpacity: number; style: { width: number; height: number; borderRadius: number; backgroundColor: string; alignItems: "center"; justifyContent: "center"; borderWidth: number; borderColor: string; }; title: string; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps & RefAttributes<View>'.
+  Property 'title' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps & RefAttributes<View>'.
+Frontend/src/app/components/hz-profile-screen.tsx(458,35): error TS2367: This comparison appears to be unintentional because the types '"profile"' and '"favourites"' have no overlap.
+Frontend/src/app/components/hz-provider-dashboard.tsx(452,16): error TS2322: Type '(tab: ProviderTab) => React.JSX.Element' is not assignable to type 'ReactNode'.
+Frontend/src/app/components/hz-provider-dashboard.tsx(453,16): error TS2322: Type '(tab: ProviderTab) => React.JSX.Element' is not assignable to type 'ReactNode'.
+Frontend/src/app/components/hz-provider-dashboard.tsx(454,16): error TS2322: Type '(tab: ProviderTab) => React.JSX.Element' is not assignable to type 'ReactNode'.
+Frontend/src/main.tsx(2,30): error TS2307: Cannot find module 'react-dom/client' or its corresponding type declarations.
+Frontend/src/main.tsx(3,19): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.

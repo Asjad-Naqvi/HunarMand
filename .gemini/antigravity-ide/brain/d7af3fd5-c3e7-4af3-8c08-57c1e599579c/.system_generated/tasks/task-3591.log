@@ -1,0 +1,6 @@
+Successfully scheduled one-shot timer.
+Expected to fire at: 2026-05-21T08:26:28+05:00
+Prompt: Verify final DB sync insert status
+
+[2026-05-21T08:26:23+05:00] Still waiting. Remaining time: 5s
+[2026-05-21T08:26:28+05:00] Timer fired.

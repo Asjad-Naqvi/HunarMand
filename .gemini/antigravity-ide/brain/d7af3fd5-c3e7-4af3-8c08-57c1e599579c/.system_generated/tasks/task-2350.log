@@ -1,0 +1,64 @@
+Starting HunarMand Stress-Test Suite...
+
+================================================================================
+ SCENARIO 1: NO SUITABLE PROVIDER AVAILABLE (GOOGLE MAPS FALLBACK) 
+================================================================================
+Status: 200
+
+Agent Response:
+Aapko H-12 markaz main kiya karna hay. HunarMand main aap ko best 3 plumbing services provide ker rahi hay.
+
+1. Islamabad Plumbing Care (4.6 rating, 38 reviews) - 1,500 PKR (base rate) + distance + urgency + complexity (no surcharge).
+2. Super Fix Techs (4.3 rating, 21 reviews) - 1,200 PKR (base rate) + distance + urgency + complexity (no surcharge).
+
+Aap apne liye achi services choose kar sakte hain aur apna booking process complete kar sakte hain.
+Aap apne booking ko complete karne ke liye click karein aur apne detail bhar dein.
+Aap apne booking ko cancel ya dispute karne ke liye bhi apna service use kar sakte hain.
+
+### Show Hunar's Thinking
+
+1. Message Language detection: English & Roman Urdu
+2. Job Complexity Classification: Basic (Plumbing services are considered basic as they do not require specialized skills or equipment)
+3. Active Safety Warnings: None
+4. Composite matching criteria: Service Type (plumbing), Sector (H-12 Markaz), Date (today)
+5. Exact dynamic pricing breakdown:
+   - Islamabad Plumbing Care: Base rate - 1500.0 PKR, Distance surcharge - 0.0 PKR, Urgency surcharge - 0.0 PKR, Complexity surcharge - 0.0 PKR, Final total - 1500.0 PKR
+   - Super Fix Techs: Base rate - 1200.0 PKR, Distance surcharge - 0.0 PKR, Urgency surcharge - 0.0 PKR, Complexity surcharge - 0.0 PKR, Final total - 1200.0 PKR
+
+================================================================================
+ SCENARIO 2: PROVIDER CANCELS AND SYSTEM RESCHEDULES 
+================================================================================
+Finding a provider in G-13...
+Creating simulated booking in database...
+Simulating booking with provider: Rizwan Electrician (eb07d391-34c1-4eb1-897b-6255b282d53c)
+
+================================================================================
+ SCENARIO 3: MISSPELLED & MIXED-LANGUAGE INPUT (ROMAN URDU) 
+================================================================================
+Status: 200
+
+Agent Response:
+Aapke paas G-13 main electrician ki zaroorat hai. Apne sector ke location (G-13) ko dene ka to abhi tak aapne diya hai. Ab, main Hunar ki tool se electrician ki list ko check karunga. 
+
+Main Hunar se kuch electricians ki list hai: 
+
+1. Farooq Ahmad (Google rating 4.8) - PKR 500 + PKR 50 (distance) + PKR 100 (urgency) = PKR 650
+2. Imran Khan (Google rating 4.5) - PKR 450 + PKR 50 (distance) + PKR 100 (urgency) = PKR 600
+3. Rashid Mehmood (Google rating 4.2) - PKR 400 + PKR 50 (distance) + PKR 100 (urgency) = PKR 550
+
+Show Hunar's Thinking:
+1. Message Language detection: Roman Urdu detected
+2. Job Complexity Classification: Chosen tier is `basic` because switch repair is a basic electrical job.
+3. Any active Safety Warnings triggered: No active safety warnings triggered.
+4. Composite matching criteria used: Location (G-13), service (electrician), complexity (basic), and urgency (same day)
+5. Exact dynamic pricing breakdown calculated: Itemized breakdown is base rate (PKR 400-500) + distance (PKR 50) + urgency (PKR 100) - loyalty discount (not applicable)
+
+================================================================================
+ SCENARIO 4: DISPUTE PRICE/QUALITY AFTER COMPLETION 
+================================================================================
+Retrieving a provider's performance metrics...
+Target Provider: Rizwan Electrician
+  - Base Rating: 4.8
+  - Cancellation Rate: 0
+  - Dispute Score: 1
+Creating mock completed booking...

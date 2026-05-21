@@ -1,0 +1,44 @@
+Starting HunarMand Stress-Test Suite...
+
+================================================================================
+ SCENARIO 1: NO SUITABLE PROVIDER AVAILABLE (GOOGLE MAPS FALLBACK) 
+================================================================================
+Status: 200
+
+Agent Response:
+Based on your location (H-12 Markaz), here are your top 3 recommended plumbers: 
+
+1. Islamabad Plumber Care (Rating: 4.6, Distance: 1.8 km, Total: Rs. 1,725)
+2. Super Fix Techs (Rating: 4.3, Distance: 2.4 km, Total: Rs. 1,380)
+
+Please see a full side-by-side comparison, including Google Maps directories, by clicking the "More Information" button.
+
+---
+
+**Show Hunar's Thinking**
+1. **Message Language detection**: English (default setting).
+2. **Job Complexity Classification**: basic (due to simple plumbing job nature).
+3. **Active Safety Warnings**: No safety warnings triggered in this scenario.
+4. **Composite matching criteria used**: A combination of Google Maps data, provider ratings, distance, and urgency.
+5. **Exact dynamic pricing breakdown**: calculated based on provider ratings, distance, and urgency (Base rate: provider fee, Distance surcharge: actual distance, Urgency surcharge: urgent service fee, Final total: total with all surcharges applied).
+
+If you'd like to book a plumber, please select one of the recommended options or click "More Information" to view the full list of nearby providers.
+
+================================================================================
+ SCENARIO 2: PROVIDER CANCELS AND SYSTEM RESCHEDULES 
+================================================================================
+Finding a provider in G-13...
+Creating simulated booking in database...
+Simulating booking with provider: Rizwan Electrician (eb07d391-34c1-4eb1-897b-6255b282d53c)
+Traceback (most recent call last):
+  File "D:\oddconnector\hidmetgo\hidmetgo-backend\test_stress_scenarios.py", line 222, in <module>
+    main()
+    ~~~~^^
+  File "D:\oddconnector\hidmetgo\hidmetgo-backend\test_stress_scenarios.py", line 91, in main
+    book_res = requests.post(f"{SUPABASE_URL}/rest/v1/bookings", headers=HEADERS, json=booking_payload, Prefers="return=representation")
+  File "D:\oddconnector\hidmetgo\hidmetgo-backend\venv\Lib\site-packages\requests\api.py", line 134, in post
+    return request("post", url, data=data, json=json, **kwargs)
+  File "D:\oddconnector\hidmetgo\hidmetgo-backend\venv\Lib\site-packages\requests\api.py", line 71, in request
+    return session.request(method=method, url=url, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Session.request() got an unexpected keyword argument 'Prefers'

@@ -1,0 +1,16 @@
+env: load .env
+env: export GOOGLE_GENAI_USE_VERTEXAI GROQ_API_KEY EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_BACKEND_URL
+› Installing 1 SDK 54.0.0 compatible native module using npm
+> npm install
+
+added 1 package, and audited 852 packages in 16s
+
+63 packages are looking for funding
+  run `npm fund` for details
+
+4 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
