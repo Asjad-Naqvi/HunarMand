@@ -1,9 +1,0 @@
-Successfully scheduled one-shot timer.
-Expected to fire at: 2026-05-20T19:43:32+05:00
-Prompt: Final check on database seed finish
-
-[2026-05-20T19:42:57+05:00] Still waiting. Remaining time: 35s
-[2026-05-20T19:43:07+05:00] Still waiting. Remaining time: 25s
-[2026-05-20T19:43:17+05:00] Still waiting. Remaining time: 15s
-[2026-05-20T19:43:27+05:00] Still waiting. Remaining time: 5s
-[2026-05-20T19:43:32+05:00] Timer fired.
