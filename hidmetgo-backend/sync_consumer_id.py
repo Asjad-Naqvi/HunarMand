@@ -36,7 +36,7 @@ def run():
         "id": correct_id,
         "name": "Test Customer",
         "phone": "+923111234509",
-        "email": "923111234509@haazir.app",
+        "email": "923111234509@hunarmand.app",
         "role": "consumer"
     }
     r4 = requests.post(f"{SUPABASE_URL}/rest/v1/users", headers=headers, json=user_payload)

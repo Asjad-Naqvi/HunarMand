@@ -1,5 +1,5 @@
 -- ============================================================
--- HAAZIR — Supabase PostgreSQL Schema
+-- HUNARMAND — Supabase PostgreSQL Schema
 -- Generated from Project Plan V2 (Files 01–08)
 -- ============================================================
 
@@ -28,6 +28,7 @@ CREATE TYPE urgency_level AS ENUM ('same_day', 'next_day', 'scheduled');
 CREATE TYPE booking_status AS ENUM (
   'pending_provider_acceptance',
   'confirmed',
+  'provider_on_the_way',
   'en_route',
   'arrived',
   'in_progress',
@@ -123,14 +124,14 @@ CREATE TABLE provider_profiles (
   jobs_completed           INT NOT NULL DEFAULT 0,
   cancellation_rate        FLOAT NOT NULL DEFAULT 0,
   dispute_score            FLOAT NOT NULL DEFAULT 1.0,
-  total_earnings_simulated INT NOT NULL DEFAULT 0,   -- PKR, includes Haazir loyalty subsidy
+  total_earnings_simulated INT NOT NULL DEFAULT 0,   -- PKR, includes HunarMand loyalty subsidy
   account_status           account_status NOT NULL DEFAULT 'active',
   suspension_until         TIMESTAMPTZ,
   member_since             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 COMMENT ON COLUMN provider_profiles.dispute_score IS 'Starts at 1.0. Penalised by disputes and non-responses. Used in matching algorithm.';
-COMMENT ON COLUMN provider_profiles.total_earnings_simulated IS 'Simulated cumulative PKR earnings including Haazir loyalty subsidy contributions.';
+COMMENT ON COLUMN provider_profiles.total_earnings_simulated IS 'Simulated cumulative PKR earnings including HunarMand loyalty subsidy contributions.';
 
 
 -- 2.6 Provider Services (one row per service the provider offers)
@@ -194,7 +195,7 @@ CREATE TABLE bookings (
   loyalty_discount_pkr        INT NOT NULL DEFAULT 0,
   loyalty_tier_applied        loyalty_tier NOT NULL DEFAULT 'none',
   final_estimate_pkr          INT NOT NULL DEFAULT 0,
-  haazir_subsidy_pkr          INT NOT NULL DEFAULT 0,
+  hunarmand_subsidy_pkr          INT NOT NULL DEFAULT 0,
   status                      booking_status NOT NULL DEFAULT 'pending_provider_acceptance',
   reminder_consumer_3h_sent   BOOLEAN NOT NULL DEFAULT FALSE,
   reminder_consumer_1h_sent   BOOLEAN NOT NULL DEFAULT FALSE,
@@ -396,7 +397,7 @@ BEGIN
       SET jobs_completed = jobs_completed + 1,
           total_earnings_simulated = total_earnings_simulated
                                      + NEW.final_estimate_pkr
-                                     + NEW.haazir_subsidy_pkr
+                                     + NEW.hunarmand_subsidy_pkr
       WHERE user_id = NEW.provider_id;
   END IF;
   RETURN NEW;

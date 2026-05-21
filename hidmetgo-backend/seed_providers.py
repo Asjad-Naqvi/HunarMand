@@ -177,7 +177,7 @@ def upsert_availability(user_id, open_time, close_time):
 
 def seed():
     print("=" * 65)
-    print(" HAAZIR — SEEDING DUMMY PROVIDERS INTO SUPABASE ")
+    print(" HUNARMAND — SEEDING DUMMY PROVIDERS INTO SUPABASE ")
     print("=" * 65)
 
     for p in SEED_PROVIDERS:

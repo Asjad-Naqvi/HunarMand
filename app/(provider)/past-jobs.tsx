@@ -1,4 +1,4 @@
-import { HzProviderPastJobs } from "../../components/haazir/provider/HzProviderPastJobs";
+import { HzProviderPastJobs } from "../../components/hunarmand/provider/HzProviderPastJobs";
 
 export default function PastJobsRoute() {
   return <HzProviderPastJobs />;

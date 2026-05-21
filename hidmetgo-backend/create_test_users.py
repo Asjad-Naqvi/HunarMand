@@ -15,14 +15,14 @@ headers = {
 
 TEST_USERS = [
     {
-        "email": "923111234509@haazir.app",
+        "email": "923111234509@hunarmand.app",
         "phone": "+923111234509",
         "password": "password123",
         "name": "Test Customer",
         "role": "consumer"
     },
     {
-        "email": "923111234510@haazir.app",
+        "email": "923111234510@hunarmand.app",
         "phone": "+923111234510",
         "password": "password123",
         "name": "Test Provider",

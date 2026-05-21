@@ -1,4 +1,4 @@
-import { HzProviderDisputeChat } from "../../components/haazir/provider/HzProviderDisputeChat";
+import { HzProviderDisputeChat } from "../../components/hunarmand/provider/HzProviderDisputeChat";
 
 export default function DisputeChatRoute() {
   return <HzProviderDisputeChat />;

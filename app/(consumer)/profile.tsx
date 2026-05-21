@@ -1,4 +1,4 @@
-import { HzProfileScreen } from "../../components/haazir/consumer/HzProfileScreen";
+import { HzProfileScreen } from "../../components/hunarmand/consumer/HzProfileScreen";
 
 export default function ProfileRoute() {
   return <HzProfileScreen />;

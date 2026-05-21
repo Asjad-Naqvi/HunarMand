@@ -1,4 +1,4 @@
-import { HzProfileSetupScreen } from "../../components/haazir/auth/HzProfileSetupScreen";
+import { HzProfileSetupScreen } from "../../components/hunarmand/auth/HzProfileSetupScreen";
 
 export default function SetupRoute() {
   return <HzProfileSetupScreen />;

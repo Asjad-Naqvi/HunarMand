@@ -1,4 +1,4 @@
-import { HzMyDisputesScreen } from "../../components/haazir/consumer/HzMyDisputesScreen";
+import { HzMyDisputesScreen } from "../../components/hunarmand/consumer/HzMyDisputesScreen";
 export default function MyDisputesRoute() {
   return <HzMyDisputesScreen />;
 }

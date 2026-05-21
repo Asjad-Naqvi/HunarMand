@@ -20,10 +20,13 @@ function RouteGuard() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
-    const inRoot = segments[0] === undefined || segments[0] === "index";
+    const inAuthGroup = (segments as string[])[0] === "(auth)";
+    const inRoot = (segments as string[]).length === 0 || (segments as string[])[0] === "index" || (segments as string[])[0] === undefined;
     // Don't redirect away if the provider is actively on the onboarding screen
     const inOnboarding = (segments as string[]).includes("onboarding");
+
+    // Let index.tsx handle the initial splash screen and routing
+    if (inRoot) return;
 
     if (!session) {
       // Not logged in — send to role selection
@@ -59,7 +62,9 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
   }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;

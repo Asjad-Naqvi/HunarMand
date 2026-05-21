@@ -21,14 +21,14 @@ PROVIDERS_TO_SEED = [
     {
         "name": "Test Customer",
         "phone": "+923111234509",
-        "email": "923111234509@haazir.app",
+        "email": "923111234509@hunarmand.app",
         "role": "consumer",
     },
     # Plumbing
     {
         "name": "Zahid Plumbing",
         "phone": "+923001111111",
-        "email": "zahidplumbing@haazir.app",
+        "email": "zahidplumbing@hunarmand.app",
         "role": "provider",
         "services": [("HS-01", 1200)], # Plumbing
         "sectors": ["G-13"],
@@ -36,7 +36,7 @@ PROVIDERS_TO_SEED = [
     {
         "name": "Usman Plumbing",
         "phone": "+923002222222",
-        "email": "usmanplumbing@haazir.app",
+        "email": "usmanplumbing@hunarmand.app",
         "role": "provider",
         "services": [("HS-01", 1400)], # Plumbing
         "sectors": ["G-13"],
@@ -45,7 +45,7 @@ PROVIDERS_TO_SEED = [
     {
         "name": "Rizwan Electrician",
         "phone": "+923003333333",
-        "email": "rizwanelectrician@haazir.app",
+        "email": "rizwanelectrician@hunarmand.app",
         "role": "provider",
         "services": [("HS-03", 1500)], # Electrician / Electronics
         "sectors": ["G-13"],
@@ -53,7 +53,7 @@ PROVIDERS_TO_SEED = [
     {
         "name": "Ali Electrician",
         "phone": "+923004444444",
-        "email": "alielectrician@haazir.app",
+        "email": "alielectrician@hunarmand.app",
         "role": "provider",
         "services": [("HS-03", 1300)], # Electrician / Electronics
         "sectors": ["G-13"],
@@ -62,7 +62,7 @@ PROVIDERS_TO_SEED = [
     {
         "name": "Babar Cleaning",
         "phone": "+923005555555",
-        "email": "babarcleaning@haazir.app",
+        "email": "babarcleaning@hunarmand.app",
         "role": "provider",
         "services": [("CS-01", 2000), ("CS-02", 2500)], # Carpet, Sofa
         "sectors": ["G-13"],
@@ -70,7 +70,7 @@ PROVIDERS_TO_SEED = [
     {
         "name": "Kashif Cleaning",
         "phone": "+923006666666",
-        "email": "kashifcleaning@haazir.app",
+        "email": "kashifcleaning@hunarmand.app",
         "role": "provider",
         "services": [("CS-01", 1800), ("CS-02", 2200)], # Carpet, Sofa
         "sectors": ["G-13"],
@@ -79,7 +79,7 @@ PROVIDERS_TO_SEED = [
     {
         "name": "Test Provider",
         "phone": "+923111234510",
-        "email": "923111234510@haazir.app",
+        "email": "923111234510@hunarmand.app",
         "role": "provider",
         "services": [("HS-04", 2000)], # AC Repair
         "sectors": ["G-13"],

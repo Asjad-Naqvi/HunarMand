@@ -25,7 +25,7 @@ REGIONS = [
 
 def find_and_apply():
     print("=" * 70)
-    print(" HAAZIR (ODDJOBS) AUTOMATIC REGION DISCOVERY & SCHEMA DEPLOYER ")
+    print(" HUNARMAND (ODDJOBS) AUTOMATIC REGION DISCOVERY & SCHEMA DEPLOYER ")
     print("=" * 70)
     
     project_id = "kiojylgihmhptndqbzpg"

@@ -7,7 +7,7 @@ load_dotenv()
 
 def apply_schema():
     print("=" * 60)
-    print(" HAAZIR (ODDJOBS) DATABASE SCHEMA MIGRATOR ")
+    print(" HUNARMAND (ODDJOBS) DATABASE SCHEMA MIGRATOR ")
     print("=" * 60)
 
     # Check for DATABASE_URL in .env

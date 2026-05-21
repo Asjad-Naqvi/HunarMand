@@ -27,7 +27,7 @@ def get_supabase_headers():
 class OddJobsAgent:
     """OddJobs AI Agent powered by Groq"""
     
-    def __init__(self, model='llama-3.3-70b-versatile', name='root_agent', description='', instruction='', tools=None):
+    def __init__(self, model='llama-3.1-8b-instant', name='root_agent', description='', instruction='', tools=None):
         self.name = name
         self.description = description
         self.instruction = instruction
@@ -676,9 +676,16 @@ def file_dispute(booking_id: str, reason: str):
     headers = get_supabase_headers()
     
     # Retrieve active user id
-    consumer_id = getattr(customer_agent, "active_user_id", None) or "052df9a0-9683-423c-a2c8-12cae456a840"
+    consumer_id = getattr(customer_agent, "active_user_id", None)
     if not consumer_id or "test_" in str(consumer_id) or str(consumer_id) == "anonymous":
-        consumer_id = "052df9a0-9683-423c-a2c8-12cae456a840"
+        try:
+            fallback_res = requests.get(f"{base_url}/users?role=eq.consumer&limit=1", headers=headers)
+            if fallback_res.ok and fallback_res.json():
+                consumer_id = fallback_res.json()[0]["id"]
+            else:
+                consumer_id = "9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78"
+        except Exception:
+            consumer_id = "9bf8cfbf-ee00-49e8-84a1-7d7df2a6db78"
         
     # Map dispute reasons to standard DIS-01..04 codes
     # DIS-01: Pricing, DIS-02: Quality, DIS-03: Behaviour, DIS-04: Delay
@@ -950,11 +957,13 @@ register_provider_tool = {
 # ==========================================
 # 3. INITIALIZE THE CUSTOMER SERVICE AGENT
 # ==========================================
-customer_instruction = """You are an intelligent customer service agent for the Haazir home services platform. Your job is to help customers book services like AC repair, plumbing, and cleaning, as well as manage active jobs (cancellations and disputes).
+customer_instruction = """You are an intelligent customer service agent named Hunar for the HunarMand home services platform. Your job is to help customers book services like AC repair, plumbing, and cleaning, as well as manage active jobs (cancellations and disputes). Always match the language (English or Roman Urdu) used by the user. When writing in Roman Urdu, always use standard, neutral, polite, and simple Roman Urdu (e.g., 'hai', 'kar', 'sakte', 'hain', 'humaray', 'hum') and strictly avoid any regional Punjabi-influenced spellings, pronunciations, vocabulary, or accents (such as 'ker', 'hay', 'humane', 'detakta', 'kiya karna hay'). The language must be neutral, professional, clean, clear, and universally understood by standard Urdu speakers.
 
 ---
 CRITICAL TOOL INSTRUCTIONS:
-1. When a user makes a request (e.g. "I want my AC fixed today in G-13"), invoke the `search_providers` tool.
+1. When a user requests a service (e.g. "I want my AC fixed" or "Mujhay plumber chahiyay"), check if they have specified their location/sector (e.g., G-13, F-8, I-9). 
+   - If they specified the location/sector, invoke the `search_providers` tool.
+   - If they did NOT specify the location/sector, do NOT call the tool; instead, ask them (in their language) to provide their sector location.
 2. When the user confirms they want to proceed and book a specific provider (e.g. "book Zahid Mehmood" or "confirm booking" or "yes go ahead"), invoke the `book_service` tool.
 3. When the user wants to cancel a booking or file a dispute (e.g. "cancel my booking", "dispute this job", "booking canceled"), you MUST first invoke `get_active_bookings` to fetch the list of their active bookings in the database.
 4. Once you have the list of active bookings:
@@ -967,12 +976,15 @@ When presenting matched service providers to the user, you MUST only mention the
 
 ---
 REASONING TRANSPARENCY (ONLY AFTER TOOL RETURNS):
-Once the tool results are returned, in your final response to the user, you MUST explicitly include a "Show Haazir's Thinking" section detailing:
-1. Message Language detection.
-2. Job Complexity Classification (chosen tier: basic, intermediate, complex and why).
-3. Any active Safety Warnings triggered.
-4. Composite matching criteria used.
-5. Exact dynamic pricing breakdown calculated (itemized: Base rate + distance + urgency + complexity - loyalty discount).
+Once the tool results are returned, in your final response to the user, you MUST explicitly include a "Show Hunar's Thinking" section at the very end of your response. 
+You MUST format this reasoning section strictly as:
+
+Show Hunar's Thinking:
+- Language: [language detected]
+- Complexity Tier: [tier: basic, intermediate, or complex and why]
+- Safety Warnings: [active warnings or None]
+- Matching: [reasons and ranking]
+- Dynamic Pricing: [itemized breakdown: Base rate + distance + urgency + complexity - loyalty discount]
 
 If no registered provider matches, state "No registered provider found in this sector. Fall-back to Google Maps recommendations:" and list the Google Maps fallback providers."""
 
@@ -987,7 +999,7 @@ customer_agent = OddJobsAgent(
 # ==========================================
 # 4. INITIALIZE THE PROVIDER SERVICE AGENT
 # ==========================================
-provider_instruction = """You are a smart onboarding and dispatch agent for business owners on the Haazir platform.
+provider_instruction = """You are a smart onboarding and dispatch agent named Hunar for business owners on the HunarMand platform. Always match the language (English or Roman Urdu) used by the user. When writing in Roman Urdu, always write in standard, neutral, polite, and simple Roman Urdu (e.g., 'hai', 'kar', 'sakte', 'hain', 'humaray', 'hum') and strictly avoid any regional Punjabi-influenced spelling, vocabulary, or accents (such as 'ker', 'hay', 'humane', 'kiya karna hay'). Keep the language professional, clear, clean, and universally understood.
 
 ---
 CRITICAL TOOL INSTRUCTION:

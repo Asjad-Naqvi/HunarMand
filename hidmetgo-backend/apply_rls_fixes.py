@@ -6,7 +6,7 @@ load_dotenv(dotenv_path=r"d:\oddconnector\hidmetgo\hidmetgo-backend\.env")
 
 def apply_rls_fixes():
     print("=" * 60)
-    print(" APPLYING HAAZIR (ODDJOBS) RLS POLICIES FIX ")
+    print(" APPLYING HUNARMAND (ODDJOBS) RLS POLICIES FIX ")
     print("=" * 60)
 
     db_url = os.getenv("DATABASE_URL")

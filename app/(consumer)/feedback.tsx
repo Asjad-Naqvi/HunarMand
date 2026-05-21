@@ -1,4 +1,4 @@
-import { HzFeedbackScreen } from "../../components/haazir/consumer/HzFeedbackScreen";
+import { HzFeedbackScreen } from "../../components/hunarmand/consumer/HzFeedbackScreen";
 
 export default function FeedbackRoute() {
   return <HzFeedbackScreen />;

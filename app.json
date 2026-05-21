@@ -1,8 +1,12 @@
 {
+  "cli": {
+    "appVersionSource": "remote"
+  },
   "expo": {
-    "name": "Haazir",
-    "slug": "haazir",
+    "name": "HunarMand",
+    "slug": "hunarmand",
     "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +20,8 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.haazir.app",
+      "package": "com.hunarmand.app",
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -27,11 +32,12 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-video"
     ],
     "extra": {
       "eas": {
-        "projectId": "0674d1b3-3c0a-4b40-bc0d-7d35425982e5"
+        "projectId": "7fe4a19a-9056-41e0-81da-5f423ef57cc2"
       }
     }
   }

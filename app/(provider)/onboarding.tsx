@@ -1,4 +1,4 @@
-import { HzProviderOnboardingChat } from "../../components/haazir/provider/HzProviderOnboardingChat";
+import { HzProviderOnboardingChat } from "../../components/hunarmand/provider/HzProviderOnboardingChat";
 
 export default function OnboardingRoute() {
   return <HzProviderOnboardingChat />;

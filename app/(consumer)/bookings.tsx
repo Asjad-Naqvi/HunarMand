@@ -1,4 +1,4 @@
-import { HzBookingsScreen } from "../../components/haazir/consumer/HzBookingsScreen";
+import { HzBookingsScreen } from "../../components/hunarmand/consumer/HzBookingsScreen";
 
 export default function BookingsRoute() {
   return <HzBookingsScreen />;

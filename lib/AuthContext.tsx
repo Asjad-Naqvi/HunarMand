@@ -7,7 +7,7 @@ import { supabase } from "./supabase";
 
 export type UserRole = "consumer" | "provider";
 
-export interface HaazirUser {
+export interface HunarMandUser {
   id: string;
   name: string | null;
   phone: string | null;
@@ -18,10 +18,10 @@ export interface HaazirUser {
 
 interface AuthContextValue {
   session: Session | null;
-  user: HaazirUser | null;
+  user: HunarMandUser | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  signInBypass: (user: HaazirUser) => Promise<void>;
+  signInBypass: (user: HunarMandUser) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -40,7 +40,7 @@ const AuthContext = createContext<AuthContextValue>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<HaazirUser | null>(null);
+  const [user, setUser] = useState<HunarMandUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch the matching row from public.users to get name, phone, role and onboarded status
@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const pProfiles = data.provider_profiles;
       const isOnboarded = pProfiles && (Array.isArray(pProfiles) ? pProfiles.length > 0 : !!pProfiles);
       
-      const updatedUser: HaazirUser = {
+      const updatedUser: HunarMandUser = {
         id: data.id,
         name: data.name,
         phone: data.phone,
@@ -67,9 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       
       // Update locally stored mock user if bypass session is active
-      const storedSess = await AsyncStorage.getItem("haazir_mock_session");
+      const storedSess = await AsyncStorage.getItem("hunarmand_mock_session");
       if (storedSess) {
-        await AsyncStorage.setItem("haazir_mock_user", JSON.stringify(updatedUser));
+        await AsyncStorage.setItem("hunarmand_mock_user", JSON.stringify(updatedUser));
       }
     } else {
       // Fallback: populate what we can from the auth user object
@@ -88,8 +88,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         // 1. Check if we have an active developer bypass session stored locally
-        const storedSess = await AsyncStorage.getItem("haazir_mock_session");
-        const storedUser = await AsyncStorage.getItem("haazir_mock_user");
+        const storedSess = await AsyncStorage.getItem("hunarmand_mock_session");
+        const storedUser = await AsyncStorage.getItem("hunarmand_mock_user");
         
         if (storedSess && storedUser) {
           setSession(JSON.parse(storedSess));
@@ -117,15 +117,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Subscribe to auth state changes (login / logout / token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
       // If we have a local mock session active, do not overwrite with null
-      const storedSess = await AsyncStorage.getItem("haazir_mock_session");
+      const storedSess = await AsyncStorage.getItem("hunarmand_mock_session");
       if (storedSess) {
         if (!s) {
           // If Supabase signed out but we are using mock auth, let's keep mock auth active
           return;
         } else {
           // If a new real user signs in, clear the mock session
-          await AsyncStorage.removeItem("haazir_mock_session");
-          await AsyncStorage.removeItem("haazir_mock_user");
+          await AsyncStorage.removeItem("hunarmand_mock_session");
+          await AsyncStorage.removeItem("hunarmand_mock_user");
         }
       }
 
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInBypass = async (mockUser: HaazirUser) => {
+  const signInBypass = async (mockUser: HunarMandUser) => {
     const mockSess: Session = {
       access_token: "mock_bypass_token_" + Date.now(),
       token_type: "bearer",
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       refresh_token: "mock_bypass_refresh_token",
       user: {
         id: mockUser.id,
-        email: mockUser.email || `${mockUser.phone}@haazir.app`,
+        email: mockUser.email || `${mockUser.phone}@hunarmand.app`,
         app_metadata: {},
         user_metadata: {
           name: mockUser.name,
@@ -161,8 +161,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Save to AsyncStorage for persistent bypass login
-    await AsyncStorage.setItem("haazir_mock_session", JSON.stringify(mockSess));
-    await AsyncStorage.setItem("haazir_mock_user", JSON.stringify(mockUser));
+    await AsyncStorage.setItem("hunarmand_mock_session", JSON.stringify(mockSess));
+    await AsyncStorage.setItem("hunarmand_mock_user", JSON.stringify(mockUser));
 
     setSession(mockSess);
     setUser(mockUser);
@@ -176,8 +176,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    await AsyncStorage.removeItem("haazir_mock_session");
-    await AsyncStorage.removeItem("haazir_mock_user");
+    await AsyncStorage.removeItem("hunarmand_mock_session");
+    await AsyncStorage.removeItem("hunarmand_mock_user");
     setSession(null);
     setUser(null);
   };

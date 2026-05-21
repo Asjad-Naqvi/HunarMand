@@ -1,4 +1,4 @@
-import { HzAwaitingScreen } from "../../components/haazir/consumer/HzAwaitingScreen";
+import { HzAwaitingScreen } from "../../components/hunarmand/consumer/HzAwaitingScreen";
 
 export default function AwaitingRoute() {
   return <HzAwaitingScreen />;

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { HzRoleSelectionScreen } from "../../components/haazir/auth/HzRoleSelectionScreen";
+import { HzRoleSelectionScreen } from "../../components/hunarmand/auth/HzRoleSelectionScreen";
 
 export default function RoleSelectRoute() {
   const router = useRouter();

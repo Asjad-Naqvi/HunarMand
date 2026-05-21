@@ -19,7 +19,7 @@ PASSWORD = "123456"
 JUAN = {
     "name": "Juan",
     "phone": "+923111234508",
-    "email": "juan@haazir.app",
+    "email": "juan@hunarmand.app",
     "role": "provider",
     "services": [("HS-03", 1200)], # Electrician
     "sectors": ["G-13"],

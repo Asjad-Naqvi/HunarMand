@@ -13,7 +13,7 @@ def test_connection():
         return
 
     print("=" * 60)
-    print(" HAAZIR (ODDJOBS) SUPABASE CONNECTION CHECK ")
+    print(" HUNARMAND (ODDJOBS) SUPABASE CONNECTION CHECK ")
     print("=" * 60)
     print(f"Connecting to REST API: {url}...")
 

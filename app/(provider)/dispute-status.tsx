@@ -1,4 +1,4 @@
-import { HzProviderDisputeStatus } from "../../components/haazir/provider/HzProviderDisputeStatus";
+import { HzProviderDisputeStatus } from "../../components/hunarmand/provider/HzProviderDisputeStatus";
 
 export default function DisputeStatusRoute() {
   return <HzProviderDisputeStatus />;
